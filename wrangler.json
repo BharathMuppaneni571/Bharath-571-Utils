@@ -2,6 +2,6 @@
   "name": "bharath-571-utils",
   "compatibility_date": "2025-08-29",
   "assets": {
-    "directory": "/"
+    "directory": "./dist"
   }
 }
