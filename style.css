@@ -1,0 +1,153 @@
+:root {
+  --bg-page: #f4f7fa;
+  --card-bg: #ffffff;
+  --accent-teal: #009688;
+  --accent-teal-light: #4fb3a2;
+  --copy-bg: #e0f2f1;
+  --copy-bg-hover: #b2dfdb;
+  --text-dark: #212529;
+  --border: #e0e0e0;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, .08);
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: var(--bg-page);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  color: var(--text-dark);
+}
+
+h1 {
+  text-align: center;
+  color: var(--accent-teal);
+  margin-bottom: 2rem
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.tile {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  transition: box-shadow .2s, transform .2s;
+}
+
+.tile:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+  transform: translateY(-2px);
+}
+
+.tile h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--accent-teal)
+}
+
+button,
+input,
+label,
+select,
+textarea {
+  display: block;
+  width: 100%;
+  margin-top: .5rem
+}
+
+input[type=text],
+select,
+textarea {
+  padding: .6rem;
+  font-family: monospace;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-dark);
+  resize: vertical;
+}
+
+button {
+  background: var(--accent-teal);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: .6rem 1rem;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+button:hover {
+  background: var(--accent-teal-light)
+}
+
+.output {
+  background: #f9f9f9;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .8rem;
+  margin-top: .5rem;
+  height: 200px;
+  overflow: auto;
+  position: relative;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.copyBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--copy-bg);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: .85rem;
+  cursor: pointer;
+}
+
+.copyBtn:hover {
+  background: var(--copy-bg-hover)
+}
+
+#imgPreview,
+#optImgPreview,
+#cropPreview {
+  max-width: 100%;
+  margin-top: .5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.qrHolder {
+  margin: .5rem auto;
+  width: 200px;
+  height: 200px
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0
+}
+
+/* Tiles that should be twice as wide as a normal tile */
+.double-tile {
+  grid-column: span 2;
+}
+
+/* Optional – when the viewport becomes very narrow the grid may
+   collapse to a single column; force the double‑tile to take the
+   full width in that case so it doesn’t overflow. */
+@media (max-width: 650px) {
+  .double-tile {
+    grid-column: span 1;
+  }
+}

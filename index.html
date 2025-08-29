@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Utility Toolbox – Tiles + Other Tools</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- 3rd‑party libraries (kept from the original version) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql-formatter/4.0.2/sql-formatter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <!-- 3rd‑party libraries (keep the ones you already have) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+
+  <!-- <-- NEW: HTML & CSS beautifiers (required for the formatter) --> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-html.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-css.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql-formatter/4.0.2/sql-formatter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+</head>
+
+<body>
+  <h1>Utility Toolbox</h1>
+
+  <!-- -------------------------------------------------------------
+       Primary tiles – exactly the same as in the original version
+       (only the inline onclick attributes have been removed)
+       ------------------------------------------------------------- -->
+  <div class="tiles">
+    <!-- URL Encode / Decode -->
+    <div class="tile" id="tile-url">
+      <h2>URL Encode / Decode</h2>
+      <label for="urlInput">URL / File Path</label>
+      <textarea id="urlInput" placeholder="e.g. file:///C:/…/Desktop/formatters.html"></textarea>
+      <button id="btnEncodeURL">Encode → URL</button>
+      <button id="btnDecodeURL">← Decode URL</button>
+      <h3>Result</h3>
+      <div class="output" id="urlResult"><button class="copyBtn" onclick='copyToClipboard("urlResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Base64 (Text) -->
+    <div class="tile" id="tile-b64text">
+      <h2>Base64 (Text)</h2>
+      <label for="strInput">Text / Base64</label>
+      <textarea id="strInput" placeholder="Enter plain text or a Base64 string"></textarea>
+      <button id="btnEncodeString">Encode → Base64</button>
+      <button id="btnDecodeString">← Decode Base64</button>
+      <h3>Result</h3>
+      <div class="output" id="strResult"><button class="copyBtn" onclick='copyToClipboard("strResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Base64 (File) -->
+    <div class="tile" id="tile-b64file">
+      <h2>Base64 (File)</h2>
+      <label for="fileInput">Upload File → Base64</label>
+      <input id="fileInput" type="file">
+      <button id="btnFileToBase64">Convert to Base64</button>
+
+      <label for="fileB64Input">Paste Base64 → Download File</label>
+      <textarea id="fileB64Input" placeholder="Base64 string (with or without data:…;base64,)"></textarea>
+      <input id="downloadFileName" placeholder="File name for download (e.g. myDoc.pdf)">
+      <button id="btnBase64ToFile">Download File</button>
+
+      <h3>Result</h3>
+      <div class="output" id="fileResult"><button class="copyBtn" onclick='copyToClipboard("fileResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Image ↔ Base64 -->
+    <div class="tile" id="tile-image">
+      <h2>Image ↔ Base64</h2>
+      <label for="imgFile">Upload Image → Base64</label>
+      <input id="imgFile" type="file" accept="image/*">
+      <button id="btnImgToBase64">Convert to Base64</button>
+
+      <label for="b64Input">Paste Base64 → Download Image</label>
+      <textarea id="b64Input" placeholder="Base64 string (with or without data:image/...;base64,)"></textarea>
+      <button id="btnBase64ToImg">Download Image</button>
+
+      <h3>Result</h3>
+      <div class="output" id="imgResult"><button class="copyBtn" onclick='copyToClipboard("imgResult")'>Copy</button>
+        <div class="result" id="imgResultText"></div>
+      </div>
+      <img alt="Preview will appear here" id="imgPreview">
+    </div>
+
+    <!-- Code Formatter -->
+    <div class="tile" id="tile-formatter">
+      <h2>Code Formatter</h2>
+      <label for="fmtExt">Choose Language / Extension</label>
+      <select id="fmtExt">
+        <option value="json">.json – JSON</option>
+        <option value="js">.js / .ts – JavaScript / TypeScript</option>
+        <option value="html">.html / .htm – HTML</option>
+        <option value="css">.css – CSS</option>
+        <option value="xml">.xml – XML</option>
+        <option value="sql">.sql – SQL</option>
+        <option value="yaml">.yaml / .yml – YAML</option>
+      </select>
+
+      <label for="fmtInput">Input Code / Data</label>
+      <textarea id="fmtInput" placeholder="Paste code or data here"></textarea>
+      <button id="btnFormatCode">Format</button>
+
+      <h3>Formatted Output</h3>
+      <div class="output" id="fmtResult"><button class="copyBtn" onclick='copyToClipboard("fmtResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- -------------- NEW – PDF tile, now part of the main toolbox -------------- -->
+    <div class="tile double-tile" id="tile-img2pdf">
+      <h2>Combine Images → PDF</h2>
+
+      <!-- 1️⃣ Select images (multiple) -->
+      <label for="pdfImgFiles">Select Images (multiple)</label>
+      <input id="pdfImgFiles" type="file" accept="image/*" multiple>
+
+      <!-- 2️⃣ Thumbnails – drag‑and‑drop to reorder -->
+      <div id="pdfImgList" style="display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0;"></div>
+
+      <!-- 3️⃣ Page size -->
+      <label for="pdfPageSize">Page size</label>
+      <select id="pdfPageSize">
+        <option value="a4">A4 (210 × 297 mm)</option>
+        <option value="letter">Letter (216 × 279 mm)</option>
+        <option value="custom">Custom (mm)</option>
+      </select>
+
+      <!-- 4️⃣ Custom size (shown only when “custom” is selected) -->
+      <div id="pdfCustomSize" style="display:none;margin:.5rem 0;">
+        <label for="pdfCustomWidth">Width (mm)</label>
+        <input id="pdfCustomWidth" type="number" placeholder="e.g. 210">
+        <label for="pdfCustomHeight">Height (mm)</label>
+        <input id="pdfCustomHeight" type="number" placeholder="e.g. 297">
+      </div>
+
+      <!-- 5️⃣ Orientation -->
+      <label for="pdfPortrait">
+        <input id="pdfPortrait" type="checkbox" checked>
+        Portrait orientation (un‑check for Landscape)
+      </label>
+
+      <!-- 6️⃣ Margins -->
+      <p style="margin:.5rem 0;font-size:.9rem;color:#555"><strong>Margins (mm)</strong></p>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <input id="pdfMarginTop" type="number" placeholder="Top" value="10" style="flex:1">
+        <input id="pdfMarginRight" type="number" placeholder="Right" value="10" style="flex:1">
+        <input id="pdfMarginBottom" type="number" placeholder="Bottom" value="10" style="flex:1">
+        <input id="pdfMarginLeft" type="number" placeholder="Left" value="10" style="flex:1">
+      </div>
+
+      <!-- 7️⃣ Scaling mode -->
+      <label for="pdfFitMode">Image scaling mode</label>
+      <select id="pdfFitMode">
+        <option value="fit">Fit (keep aspect‑ratio, whole image visible)</option>
+        <option value="fill">Fill (cover page, may crop)</option>
+        <option value="stretch">Stretch (ignore aspect‑ratio)</option>
+      </select>
+
+      <!-- 8️⃣ Rotation -->
+      <label for="pdfRotate">Rotate each page</label>
+      <select id="pdfRotate">
+        <option value="0">0°</option>
+        <option value="90">90°</option>
+        <option value="180">180°</option>
+        <option value="270">270°</option>
+      </select>
+
+      <!-- 9️⃣ JPEG quality -->
+      <label for="pdfQuality">JPEG quality (0.1 – 1, lower = smaller file)</label>
+      <input id="pdfQuality" type="range" min="0.1" max="1" step="0.1" value="0.8">
+
+      <!-- 10️⃣ Header / Footer -->
+      <label for="pdfHeader">Header text (optional)</label>
+      <input id="pdfHeader" type="text" placeholder="e.g. My Report">
+
+      <label for="pdfFooter">Footer text (optional)</label>
+      <input id="pdfFooter" type="text" placeholder="e.g. © 2025 Company">
+
+      <!-- 11️⃣ Page numbers -->
+      <label for="pdfPageNumbers">
+        <input id="pdfPageNumbers" type="checkbox" checked>
+        Add page numbers
+      </label>
+
+      <!-- 12️⃣ Global caption -->
+      <label for="pdfCaption">Caption under each image (optional)</label>
+      <input id="pdfCaption" type="text" placeholder="e.g. Figure – Description">
+
+      <!-- 13️⃣ PDF metadata -->
+      <label for="pdfTitle">PDF title (metadata)</label>
+      <input id="pdfTitle" type="text" placeholder="Document title">
+
+      <label for="pdfAuthor">PDF author (metadata)</label>
+      <input id="pdfAuthor" type="text" placeholder="Your name">
+
+      <!-- 14️⃣ Output file name -->
+      <label for="pdfFileName">Output file name</label>
+      <input id="pdfFileName" type="text" placeholder="combined-images.pdf" value="combined-images.pdf">
+
+      <button id="btnCombinePdf" style="margin-top:1rem;">Generate PDF</button>
+
+      <h3>Result</h3>
+      <div class="output" id="pdfResult">
+        <button class="copyBtn" onclick='copyToClipboard("pdfResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <hr>
+  <h2 style="text-align:center;color:var(--accent-teal);margin:2rem 0">Other Tools</h2>
+
+  <!-- -------------------------------------------------------------
+       All original “Other Tools” tiles – unchanged except for IDs
+       ------------------------------------------------------------- -->
+  <div class="tiles">
+
+    <!-- QR Code (Generate / Scan) -->
+    <div class="tile" id="tile-qr">
+      <h2>QR Code (Generate / Scan)</h2>
+      <label for="qrText">Text / URL to encode</label>
+      <input id="qrText" placeholder="Enter text or URL">
+      <button id="btnGenerateQR">Generate QR</button>
+      <div class="qrHolder" id="qrHolder"></div>
+
+      <hr>
+      <label for="qrFile">Upload QR image to scan</label>
+      <input id="qrFile" type="file" accept="image/*">
+      <button id="btnScanQR">Scan QR</button>
+
+      <h3>Scanned Result</h3>
+      <div class="output" id="qrResult"><button class="copyBtn" onclick='copyToClipboard("qrResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Hash Calculator -->
+    <div class="tile" id="tile-hash">
+      <h2>Hash Calculator</h2>
+      <label for="hashAlgo">Algorithm</label>
+      <select id="hashAlgo">
+        <option value="SHA-1">SHA‑1</option>
+        <option value="SHA-256">SHA‑256</option>
+        <option value="SHA-384">SHA‑384</option>
+        <option value="SHA-512">SHA‑512</option>
+      </select>
+      <label for="hashInput">Text to hash</label>
+      <textarea id="hashInput" placeholder="Enter text" rows="3"></textarea>
+      <button id="btnCalcHash">Calculate</button>
+
+      <h3>Result</h3>
+      <div class="output" id="hashResult"><button class="copyBtn" onclick='copyToClipboard("hashResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Minifier -->
+    <div class="tile" id="tile-minify">
+      <h2>Minifier</h2>
+      <label for="minifyExt">Language</label>
+      <select id="minifyExt">
+        <option value="json">JSON</option>
+        <option value="js">JavaScript</option>
+        <option value="css">CSS</option>
+        <option value="html">HTML</option>
+      </select>
+      <label for="minifyInput">Code / Data</label>
+      <textarea id="minifyInput" placeholder="Paste code here" rows="4"></textarea>
+      <button id="btnMinify">Minify</button>
+
+      <h3>Minified Output</h3>
+      <div class="output" id="minifyResult"><button class="copyBtn"
+          onclick='copyToClipboard("minifyResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Password Generator -->
+    <div class="tile" id="tile-pwd">
+      <h2>Password Generator</h2>
+      <label for="pwdLength">Length</label>
+      <input id="pwdLength" type="number" value="12" max="64" min="4">
+      <label>Include characters</label>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+        <label><input id="pwdUpper" type="checkbox" checked> Uppercase</label>
+        <label><input id="pwdLower" type="checkbox" checked> Lowercase</label>
+        <label><input id="pwdNumbers" type="checkbox" checked> Numbers</label>
+        <label><input id="pwdSymbols" type="checkbox"> Symbols</label>
+      </div>
+      <button id="btnGeneratePwd">Generate</button>
+
+      <h3>Result</h3>
+      <div class="output" id="pwdResult"><button class="copyBtn" onclick='copyToClipboard("pwdResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- CSV ↔ JSON -->
+    <div class="tile" id="tile-csvjson">
+      <h2>CSV ↔ JSON</h2>
+      <label for="csvInput">CSV Input</label>
+      <textarea id="csvInput" placeholder="Paste CSV (comma‑separated)" rows="3"></textarea>
+      <button id="btnCsvToJson">CSV → JSON</button>
+
+      <label for="jsonInput">JSON Input</label>
+      <textarea id="jsonInput" placeholder="Paste JSON array" rows="3"></textarea>
+      <button id="btnJsonToCsv">JSON → CSV</button>
+
+      <h3>Result</h3>
+      <div class="output" id="csvjsonResult"><button class="copyBtn"
+          onclick='copyToClipboard("csvjsonResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- URL Shortener / Expander -->
+    <div class="tile" id="tile-urlshort">
+      <h2>URL Shortener / Expander</h2>
+      <label for="longUrl">Long URL</label>
+      <input id="longUrl" placeholder="https://example.com/very/long/path">
+      <button id="btnShortenURL">Shorten (tinyurl)</button>
+
+      <label for="shortUrl">Short URL</label>
+      <input id="shortUrl" placeholder="Enter short URL to expand">
+      <button id="btnExpandURL">Expand (follow redirects)</button>
+
+      <h3>Result</h3>
+      <div class="output" id="urlshortResult"><button class="copyBtn"
+          onclick='copyToClipboard("urlshortResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Image Optimizer (Compress to JPEG) -->
+    <div class="tile" id="tile-imgopt">
+      <h2>Image Optimizer (Compress to JPEG)</h2>
+      <label for="optImgFile">Upload Image</label>
+      <input id="optImgFile" type="file" accept="image/*">
+      <label for="optQuality">Quality (0‑1)</label>
+      <input id="optQuality" type="range" value="0.7" max="1" min="0.1" step="0.1">
+      <button id="btnCompressImage">Compress</button>
+
+      <h3>Result</h3>
+      <div class="output" id="optImgResult"><button class="copyBtn"
+          onclick='copyToClipboard("optImgResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+      <img alt="Optimized preview" id="optImgPreview">
+    </div>
+
+    <!-- File Type Detector -->
+    <div class="tile" id="tile-detect">
+      <h2>File Type Detector</h2>
+      <label for="detectFile">Upload File</label>
+      <input id="detectFile" type="file">
+      <button id="btnDetectFile">Detect</button>
+
+      <h3>Result</h3>
+      <div class="output" id="detectResult"><button class="copyBtn"
+          onclick='copyToClipboard("detectResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Unicode ↔ HTML Entity -->
+    <div class="tile" id="tile-entity">
+      <h2>Unicode ↔ HTML Entity</h2>
+      <label for="entityInput">Text / Entity</label>
+      <textarea id="entityInput" placeholder="Enter text or HTML entity" rows="3"></textarea>
+      <button id="btnEncodeEntity">Encode → Entity</button>
+      <button id="btnDecodeEntity">Decode → Text</button>
+
+      <h3>Result</h3>
+      <div class="output" id="entityResult"><button class="copyBtn"
+          onclick='copyToClipboard("entityResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Bulk Batch Processor (Base64 → ZIP) -->
+    <div class="tile" id="tile-batch">
+      <h2>Bulk Batch Processor (Base64 → ZIP)</h2>
+      <label for="batchFiles">Select Multiple Files</label>
+      <input id="batchFiles" type="file" multiple>
+      <button id="btnBatchToBase64Zip">Encode All to Base64 &amp; Download ZIP</button>
+
+      <h3>Log</h3>
+      <div class="output" id="batchResult"><button class="copyBtn"
+          onclick='copyToClipboard("batchResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Date‑Time Formatter -->
+    <div class="tile" id="tile-datetime">
+      <h2>Date‑Time Formatter</h2>
+      <label for="dtInput">Timestamp / Date string</label>
+      <input id="dtInput" placeholder="e.g. 2024‑08‑30T14:23:00Z or 1693400580000">
+      <button id="btnFormatDateTime">Format</button>
+
+      <h3>Result (ISO | Locale | UTC)</h3>
+      <div class="output" id="dtResult"><button class="copyBtn" onclick='copyToClipboard("dtResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- MIME‑type Lookup -->
+    <div class="tile" id="tile-mime">
+      <h2>MIME‑type Lookup</h2>
+      <label for="mimeInput">Extension or MIME string</label>
+      <input id="mimeInput" placeholder="e.g. .pdf or image/png">
+      <button id="btnLookupMime">Lookup</button>
+
+      <h3>Result</h3>
+      <div class="output" id="mimeResult"><button class="copyBtn" onclick='copyToClipboard("mimeResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Binary ↔ Hex Converter -->
+    <div class="tile" id="tile-hex">
+      <h2>Binary ↔ Hex Converter</h2>
+      <label for="hexFile">Upload File (to Hex)</label>
+      <input id="hexFile" type="file">
+      <button id="btnFileToHex">Convert to Hex</button>
+
+      <label for="hexInput">Hex String (to Binary)</label>
+      <textarea id="hexInput" placeholder="Enter hex string" rows="3"></textarea>
+      <button id="btnHexToFile">Download Binary File</button>
+
+      <h3>Result</h3>
+      <div class="output" id="hexResult"><button class="copyBtn" onclick='copyToClipboard("hexResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Colour Picker & Converter -->
+    <div class="tile" id="tile-colour">
+      <h2>Colour Picker & Converter</h2>
+      <label for="colourInput">Pick a colour</label>
+      <input id="colourInput" type="color" value="#009688">
+      <button id="btnConvertColour">Convert</button>
+
+      <h3>Result (HEX | RGB | HSL)</h3>
+      <div class="output" id="colourResult"><button class="copyBtn"
+          onclick='copyToClipboard("colourResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- QR Batch Export (PDF) -->
+    <div class="tile" id="tile-qrpdf">
+      <h2>QR Batch Export (PDF)</h2>
+      <label for="qrBatchInput">One text per line</label>
+      <textarea id="qrBatchInput" placeholder="Enter each value on a new line" rows="4"></textarea>
+      <button id="btnExportQRBatch">Generate PDF</button>
+
+      <h3>Result</h3>
+      <div class="output" id="qrpdfResult"><button class="copyBtn"
+          onclick='copyToClipboard("qrpdfResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- ==================== NEW TOOLS ==================== -->
+
+    <!-- ==================== 1️⃣ Crop & Resize Image (new) ==================== -->
+    <div class="tile" id="tile-cropresize">
+      <h2>Crop &amp; Resize Image</h2>
+
+      <!-- ---------- 1️⃣ Source image ---------- -->
+      <label for="cropImgFile">Upload Image</label>
+      <input id="cropImgFile" type="file" accept="image/*">
+
+      <!-- ---------- 2️⃣ Target dimensions ---------- -->
+      <label for="cropWidth">Target Width (px)</label>
+      <input id="cropWidth" type="number" placeholder="e.g. 800">
+
+      <label for="cropHeight">Target Height (px)</label>
+      <input id="cropHeight" type="number" placeholder="e.g. 600">
+
+      <!-- ---------- 3️⃣ Size limits (optional) ---------- -->
+      <p style="margin:.5rem 0;font-size:.9rem;color:#555">
+        <strong>Min / Max size (px)</strong> – leave blank if you don’t need limits.
+      </p>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <input id="cropMinW" type="number" placeholder="Min W" style="flex:1">
+        <input id="cropMinH" type="number" placeholder="Min H" style="flex:1">
+        <input id="cropMaxW" type="number" placeholder="Max W" style="flex:1">
+        <input id="cropMaxH" type="number" placeholder="Max H" style="flex:1">
+      </div>
+
+      <!-- ---------- 4️⃣ Behaviour options ---------- -->
+      <label for="cropLockRatio">
+        <input id="cropLockRatio" type="checkbox" checked>
+        Keep original aspect‑ratio (centre‑crop)
+      </label>
+
+      <label for="cropAllowUpscale">
+        <input id="cropAllowUpscale" type="checkbox">
+        Allow up‑scaling (enlarge smaller images)
+      </label>
+
+      <label for="cropCanvasBg">Canvas background colour</label>
+      <input id="cropCanvasBg" type="color" value="#ffffff">
+
+      <!-- ---------- 5️⃣ Output format ---------- -->
+      <p style="margin:.5rem 0;font-size:.9rem;color:#555">
+        <strong>Output format</strong>
+      </p>
+      <select id="cropOutFormat">
+        <option value="png">PNG (lossless)</option>
+        <option value="jpeg">JPEG (lossy)</option>
+      </select>
+
+      <label for="cropJpegQuality">JPEG quality (0‑1) – only used for JPEG</label>
+      <input id="cropJpegQuality" type="range" min="0.1" max="1" step="0.1" value="0.9">
+
+      <!-- ---------- 6️⃣ Action button ---------- -->
+      <button id="btnCropResize" style="margin-top:1rem">Crop &amp; Resize</button>
+
+      <!-- ---------- 7️⃣ Result area ---------- -->
+      <h3>Result</h3>
+      <div class="output" id="cropResult">
+        <button class="copyBtn" onclick='copyToClipboard("cropResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+      <img alt="Cropped &amp; resized preview" id="cropPreview"
+        style="margin-top:.5rem;max-width:100%;border:1px solid var(--border);border-radius:var(--radius)">
+    </div>
+
+  </div>
+
+  <!-- -------------------------------------------------------- -->
+  <!--  All custom JavaScript lives in script.js                  -->
+  <!-- -------------------------------------------------------- -->
+  <script src="script.js"></script>
+</body>
+
+</html>
