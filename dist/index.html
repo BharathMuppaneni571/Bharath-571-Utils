@@ -26,6 +26,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/x2js/1.2.0/xml2json.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsonpath/1.1.1/jsonpath.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+  <!-- New Feature Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cronstrue/2.27.0/cronstrue.min.js"></script>
   <!-- CodeMirror -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-ocean.min.css">
@@ -676,6 +679,7 @@
       </div>
     </div>
     <!-- Native OData Query Builder -->
+    <!-- existing DOM unchanged internally ... -->
     <div class="tile double-tile" id="tile-odata">
       <h2>OData Query Builder</h2>
       
@@ -715,6 +719,187 @@
       <div class="output" id="odataResult" style="height:150px;">
         <button class="copyBtn" onclick='copyToClipboard("odataResult")'>Copy</button>
         <div class="result" style="word-break: break-all; white-space: pre-wrap;"></div>
+      </div>
+    </div>
+
+    <!-- 29: JWT Sandbox -->
+    <div class="tile double-tile" id="tile-jwt">
+      <h2>JWT Token Sandbox</h2>
+      <label for="jwtInput">Enter JWT Token</label>
+      <textarea id="jwtInput" rows="3" placeholder="eyJhbG..."></textarea>
+      <button id="btnDecodeJwt" style="margin-top: 1rem;">Decode Token</button>
+      
+      <div style="display:flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+        <div style="flex:1; min-width:300px;">
+          <h3>Header</h3>
+          <div class="output" id="jwtHeaderResult" style="height:150px; overflow-y:auto;">
+            <div class="result"></div>
+          </div>
+        </div>
+        <div style="flex:1; min-width:300px;">
+          <h3>Payload</h3>
+          <div class="output" id="jwtPayloadResult" style="height:150px; overflow-y:auto;">
+            <div class="result"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 30: cURL to Fetch -->
+    <div class="tile double-tile" id="tile-curl">
+      <h2>cURL Converter</h2>
+      <div style="display:flex; gap: 1rem; flex-wrap:wrap;">
+        <div style="flex:1; min-width:300px;">
+          <label for="curlInput">Raw cURL String</label>
+          <textarea id="curlInput" rows="6" placeholder="curl -X POST https://api.com -H 'Auth: Bearer x' -d '{\&quot;id\&quot;: 1}'"></textarea>
+        </div>
+        <div style="flex:1; min-width:300px;">
+          <label>JavaScript Output (Fetch)</label>
+          <div class="output" id="curlResult" style="height:100%;">
+            <button class="copyBtn" onclick='copyToClipboard("curlResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+      </div>
+      <button id="btnConvertCurl" style="margin-top:1rem;">Generate Fetch Code</button>
+    </div>
+
+    <!-- 31: Cron Expression Generator -->
+    <div class="tile double-tile" id="tile-cron">
+      <h2>Cron Expression Generator</h2>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label>Minute (0-59)</label>
+          <input id="cronMin" type="text" value="0" />
+        </div>
+        <div>
+          <label>Hour (0-23)</label>
+          <input id="cronHour" type="text" value="12" />
+        </div>
+        <div>
+          <label>Day of Month</label>
+          <input id="cronDom" type="text" value="*" />
+        </div>
+        <div>
+          <label>Month (1-12)</label>
+          <input id="cronMonth" type="text" value="*" />
+        </div>
+        <div>
+          <label>Day of Week</label>
+          <input id="cronDow" type="text" value="*" />
+        </div>
+      </div>
+      <div style="display:flex; gap: 1rem; flex-wrap:wrap; align-items:center;">
+        <div style="flex:2;">
+          <label for="cronCompiled">Compiled String</label>
+          <input id="cronCompiled" type="text" value="0 12 * * *" readonly style="background:var(--card-bg);" />
+        </div>
+        <div style="flex:3;">
+          <label>Text Translation</label>
+          <div class="output" id="cronResult" style="height:44px; padding: 0.6rem 1rem;">
+            <div class="result" style="color:var(--accent-base); font-weight:bold;">At 12:00 PM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 32: Live Markdown Editor -->
+    <div class="tile double-tile" id="tile-markdown">
+      <h2>Live Markdown Editor</h2>
+      <div style="display:flex; gap: 1rem; flex-wrap:wrap; height: 400px;">
+        <div style="flex:1; min-width:300px; display:flex; flex-direction:column;">
+          <label for="mdInput">Markdown (.md)</label>
+          <div style="flex:1; position:relative;">
+            <textarea id="mdInput"># Hello World&#10;Write markdown **here**.</textarea>
+          </div>
+        </div>
+        <div style="flex:1; min-width:300px; display:flex; flex-direction:column;">
+          <label>HTML Preview</label>
+          <div class="output" id="mdResult" style="flex:1; overflow-y:auto; background:var(--card-bg);">
+            <div class="result" style="white-space:normal; padding: 1rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 33: Mock Data Seed Generator -->
+    <div class="tile double-tile" id="tile-mockdata">
+      <h2>Database Seed Generator</h2>
+      <div style="display:flex; gap: 1rem; margin-bottom: 1rem; align-items:flex-end;">
+        <div style="flex:1;">
+          <label for="mockTable">Table Name</label>
+          <input id="mockTable" type="text" value="Users" />
+        </div>
+        <div style="flex:1;">
+          <label for="mockRows">Row Count</label>
+          <input id="mockRows" type="number" value="10" />
+        </div>
+        <div style="flex:1;">
+          <label for="mockFormat">Export Format</label>
+          <select id="mockFormat">
+            <option value="sql">SQL INSERT</option>
+            <option value="csv">CSV</option>
+            <option value="json">JSON</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <button id="btnGenerateMock">Generate Data</button>
+        </div>
+      </div>
+      <label>Generated Seed Data</label>
+      <div class="output" id="mockResult" style="height:250px;">
+        <button class="copyBtn" onclick='copyToClipboard("mockResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- 34: AI Image Generator -->
+    <div class="tile double-tile" id="tile-imagegen">
+      <h2>AI Image Generator</h2>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end; margin-bottom:1rem;">
+        <div style="flex:3;">
+          <label for="imgPrompt">Image Prompt</label>
+          <input id="imgPrompt" type="text" placeholder="A futuristic SAP dashboard with neon lights..." />
+        </div>
+        <div style="flex:1; min-width:160px;">
+          <label for="imgSource">Source API</label>
+          <select id="imgSource">
+            <option value="pollinations">Pollinations AI (Free, Text→Image)</option>
+            <option value="picsum">Picsum Photos (Unsplash)</option>
+            <option value="dicebear">DiceBear (Abstract Art)</option>
+            <option value="robohash">Robohash (Avatars)</option>
+          </select>
+        </div>
+        <div>
+          <button id="btnGenerateImage">Generate Image</button>
+        </div>
+      </div>
+
+      <p id="imgStatus" style="color:var(--text-muted); font-size:0.9rem; margin:0 0 1rem;"></p>
+
+      <div id="imgPlaceholder" style="
+        min-height: 320px;
+        border: 2px dashed var(--card-border);
+        border-radius: var(--radius);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--card-bg);
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        padding: 1.5rem;
+      ">
+        <span class="material-symbols-outlined" style="font-size:3rem; opacity:0.3; margin-bottom:0.5rem;">image</span>
+        Generated image will appear here
+      </div>
+
+      <div style="margin-top:1rem; background:rgba(45,212,191,0.05); border:1px solid rgba(45,212,191,0.2); border-radius:8px; padding:0.8rem 1rem;">
+        <p style="margin:0; font-size:0.8rem; color:var(--text-muted);">
+          ⚡ <strong>Pollinations AI</strong> uses free open AI models (no API key). 
+          <strong>Picsum</strong> returns real Unsplash photos matching concept seeds. 
+          <strong>DiceBear</strong> generates abstract art. <strong>Robohash</strong> creates unique robot avatars.
+        </p>
       </div>
     </div>
 

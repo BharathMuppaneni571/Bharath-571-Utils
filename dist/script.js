@@ -34,7 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
     'tile-jsonpath': 'troubleshoot',
     'tile-handlebar': 'view_stream',
     'tile-restapi': 'api',
-    'tile-odata': 'database'
+    'tile-odata': 'database',
+    'tile-jwt': 'vpn_key',
+    'tile-curl': 'terminal',
+    'tile-cron': 'calendar_month',
+    'tile-markdown': 'edit_document',
+    'tile-mockdata': 'table',
+    'tile-imagegen': 'image_search'
   };
 
   tools.forEach(tool => {
@@ -1257,4 +1263,206 @@ document.getElementById('btnBuildOdata')?.addEventListener('click', () => {
   }
 
   document.querySelector('#odataResult .result').textContent = finalUrl;
+});
+
+/* ==== 29 JWT Token Sandbox ======================== */
+document.getElementById('btnDecodeJwt')?.addEventListener('click', () => {
+  const token = getVal('jwtInput');
+  if (!token) return alert('Paste a JWT token first.');
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) throw new Error('Not a valid JWT (needs at least 2 parts)');
+    const decode = str => {
+      const b64 = str.replace(/-/g,'+').replace(/_/g,'/');
+      const json = decodeURIComponent(atob(b64).split('').map(c => 
+        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      return JSON.parse(json);
+    };
+    document.querySelector('#jwtHeaderResult .result').textContent = JSON.stringify(decode(parts[0]), null, 2);
+    document.querySelector('#jwtPayloadResult .result').textContent = JSON.stringify(decode(parts[1]), null, 2);
+  } catch(e) {
+    document.querySelector('#jwtHeaderResult .result').textContent = 'Error: ' + e.message;
+    document.querySelector('#jwtPayloadResult .result').textContent = '';
+  }
+});
+
+/* ==== 30 cURL to Fetch Converter ======================== */
+document.getElementById('btnConvertCurl')?.addEventListener('click', () => {
+  const curl = getVal('curlInput');
+  if (!curl) return alert('Paste a cURL command first.');
+  try {
+    let method = 'GET';
+    let url = '';
+    let headers = {};
+    let body = null;
+
+    const methodMatch = curl.match(/-X\s+(\w+)/i);
+    if (methodMatch) method = methodMatch[1].toUpperCase();
+
+    const urlMatch = curl.match(/curl\s+(?:-[^\s]+\s+[^\s]+\s+)*['"](https?:\/\/[^'"]+)['"]/)  
+                  || curl.match(/curl\s+(?:-[^\s]+\s+[^\s]+\s+)*(https?:\/\/\S+)/);
+    if (urlMatch) url = urlMatch[1];
+
+    const headerMatches = [...curl.matchAll(/-H\s+['"]([^'"]+)['"]/gi)];
+    headerMatches.forEach(m => {
+      const [k, ...v] = m[1].split(':');
+      if(k) headers[k.trim()] = v.join(':').trim();
+    });
+
+    const bodyMatch = curl.match(/(?:-d|--data|--data-raw)\s+['"]((?:[^'"\\]|\\.)*)['"]/);
+    if (bodyMatch) body = bodyMatch[1].replace(/\\'/g, "'").replace(/\\"/g, '"');
+    if (!body) {
+      const bodyRaw = curl.match(/(?:-d|--data|--data-raw)\s+(\{[^}]+\}|\[[^\]]+\])/i);
+      if (bodyRaw) body = bodyRaw[1];
+    }
+
+    const headersStr = Object.keys(headers).length ? 
+      `  headers: ${JSON.stringify(headers, null, 4).replace(/\n/g, '\n  ')},\n` : '';
+    const bodyStr = body ? `  body: ${JSON.stringify(body)},\n` : '';
+
+    const output = `const response = await fetch('${url}', {\n  method: '${method}',\n${headersStr}${bodyStr}});\n\nconst data = await response.json();\nconsole.log(data);`;
+    document.querySelector('#curlResult .result').textContent = output;
+  } catch(e) {
+    document.querySelector('#curlResult .result').textContent = 'Parse Error: ' + e.message;
+  }
+});
+
+/* ==== 31 Cron Expression Generator ======================== */
+function updateCron() {
+  const min = getVal('cronMin') || '*';
+  const hour = getVal('cronHour') || '*';
+  const dom = getVal('cronDom') || '*';
+  const month = getVal('cronMonth') || '*';
+  const dow = getVal('cronDow') || '*';
+  const expr = `${min} ${hour} ${dom} ${month} ${dow}`;
+  const compiled = document.getElementById('cronCompiled');
+  if (compiled) compiled.value = expr;
+  try {
+    const text = typeof cronstrue !== 'undefined' ? cronstrue.toString(expr) : expr;
+    document.querySelector('#cronResult .result').textContent = text;
+  } catch(e) {
+    document.querySelector('#cronResult .result').textContent = 'Invalid expression: ' + e.message;
+  }
+}
+['cronMin','cronHour','cronDom','cronMonth','cronDow'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', updateCron);
+});
+
+/* ==== 32 Live Markdown Editor ======================== */
+function renderMarkdown() {
+  const src = window.cmEditors?.mdInput ? window.cmEditors.mdInput.getValue() 
+             : (document.getElementById('mdInput')?.value || '');
+  const preview = document.querySelector('#mdResult .result');
+  if (!preview) return;
+  if (typeof marked !== 'undefined') {
+    preview.innerHTML = marked.parse(src);
+  } else {
+    preview.textContent = src;
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (window.cmEditors?.mdInput) {
+      window.cmEditors.mdInput.on('change', renderMarkdown);
+    } else {
+      document.getElementById('mdInput')?.addEventListener('input', renderMarkdown);
+    }
+    renderMarkdown();
+  }, 500);
+});
+
+/* ==== 33 Database Seed Generator ======================== */
+const MOCK_GENERATORS = {
+  id:        () => Math.floor(Math.random() * 90000) + 10000,
+  uuid:      () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+               const r = Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16); }),
+  firstName: () => ['Aarav','Priya','Rohan','Meera','Arjun','Divya','Sai','Kavya','Kiran','Anjali'][Math.floor(Math.random()*10)],
+  lastName:  () => ['Sharma','Patel','Kumar','Singh','Reddy','Nair','Rao','Iyer','Mehta','Gupta'][Math.floor(Math.random()*10)],
+  email:     (row) => `user${row.id || Math.floor(Math.random()*9000+1000)}@example.com`,
+  phone:     () => '+91 ' + (Math.floor(Math.random()*9000000000)+1000000000),
+  city:      () => ['Mumbai','Delhi','Bangalore','Chennai','Hyderabad','Pune','Kolkata','Ahmedabad'][Math.floor(Math.random()*8)],
+  company:   () => ['TechCorp','Innovate Ltd','GlobalSoft','DataSys','CloudBase'][Math.floor(Math.random()*5)],
+  salary:    () => Math.floor(Math.random()*90000+30000),
+  date:      () => { const d=new Date(Date.now()-Math.random()*3e10); return d.toISOString().split('T')[0]; },
+  boolean:   () => Math.random() > 0.5,
+  status:    () => ['active','inactive','pending','suspended'][Math.floor(Math.random()*4)]
+};
+
+document.getElementById('btnGenerateMock')?.addEventListener('click', () => {
+  const table = getVal('mockTable') || 'Users';
+  const rows = parseInt(getVal('mockRows')) || 10;
+  const fmt = document.getElementById('mockFormat')?.value || 'sql';
+  const cols = ['id','firstName','lastName','email','city','company','date','status'];
+  
+  const data = Array.from({length: rows}, () => {
+    const row = {};
+    cols.forEach(c => { row[c] = (MOCK_GENERATORS[c] || (() => 'N/A'))(row); });
+    return row;
+  });
+
+  let output = '';
+  if (fmt === 'json') {
+    output = JSON.stringify(data, null, 2);
+  } else if (fmt === 'csv') {
+    output = cols.join(',') + '\n';
+    output += data.map(r => cols.map(c => `"${r[c]}"`).join(',')).join('\n');
+  } else {
+    output = data.map(r => {
+      const vals = cols.map(c => typeof r[c]==='string' ? `'${r[c]}'` : r[c]);
+      return `INSERT INTO ${table} (${cols.join(', ')}) VALUES (${vals.join(', ')});`;
+    }).join('\n');
+  }
+  document.querySelector('#mockResult .result').textContent = output;
+});
+
+/* ==== 34 AI Image Generator ======================== */
+document.getElementById('btnGenerateImage')?.addEventListener('click', async () => {
+  const prompt = getVal('imgPrompt');
+  const source = document.getElementById('imgSource')?.value;
+  if (!prompt) return alert('Please enter a prompt first.');
+
+  const placeholder = document.getElementById('imgPlaceholder');
+  const statusEl = document.getElementById('imgStatus');
+  placeholder.innerHTML = '';
+  statusEl.textContent = 'Generating image...';
+  statusEl.style.color = 'var(--text-muted)';
+
+  try {
+    let imgUrl = '';
+    if (source === 'pollinations') {
+      // Pollinations.ai - completely free, no API key needed
+      const encoded = encodeURIComponent(prompt);
+      imgUrl = `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&t=${Date.now()}`;
+    } else if (source === 'dicebear') {
+      // DiceBear abstract art - free
+      const seed = encodeURIComponent(prompt);
+      imgUrl = `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}&size=512&backgroundColor=0f172a`;
+    } else if (source === 'robohash') {
+      // Robohash - fun AI avatars from any text
+      const seed = encodeURIComponent(prompt);
+      imgUrl = `https://robohash.org/${seed}?size=512x512&set=set4`;
+    } else if (source === 'picsum') {
+      // Unsplash via Picsum - beautiful placeholder photos
+      imgUrl = `https://picsum.photos/seed/${encodeURIComponent(prompt)}/512/512`;
+    }
+
+    const img = document.createElement('img');
+    img.style.cssText = 'max-width:100%; border-radius:12px; display:block; margin:0 auto;';
+    img.onload = () => { statusEl.textContent = '✓ Image generated successfully!'; statusEl.style.color = 'var(--accent-base)'; };
+    img.onerror = () => { statusEl.textContent = '✗ Failed to load image. Try again.'; statusEl.style.color = '#f87171'; };
+    img.src = imgUrl;
+    img.alt = prompt;
+    placeholder.appendChild(img);
+
+    // Add download button
+    const dlBtn = document.createElement('a');
+    dlBtn.href = imgUrl;
+    dlBtn.target = '_blank';
+    dlBtn.textContent = '⬇ Open Full Image';
+    dlBtn.style.cssText = 'display:block; margin-top:0.8rem; color:var(--accent-base); text-align:center; font-weight:600;';
+    placeholder.appendChild(dlBtn);
+  } catch(e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.style.color = '#f87171';
+  }
 });
