@@ -1,4 +1,180 @@
 /* -------------------------------------------------------------
+   SPA Routing Engine
+   ------------------------------------------------------------- */
+document.addEventListener("DOMContentLoaded", () => {
+  const tools = Array.from(document.querySelectorAll('.tile'));
+  const sidebarNav = document.getElementById('sidebar-nav');
+  const dashboardGrid = document.getElementById('view-dashboard');
+
+  const iconMap = {
+    'tile-base64': 'key',
+    'tile-urlencode': 'link',
+    'tile-htmlencode': 'code_blocks',
+    'tile-strconvert': 'text_fields',
+    'tile-timestamp': 'schedule',
+    'tile-diff': 'difference',
+    'tile-color': 'palette',
+    'tile-lorem': 'format_align_left',
+    'tile-crop': 'crop',
+    'tile-pwdgen': 'password',
+    'tile-regex': 'search',
+    'tile-jsonview': 'data_object',
+    'tile-beautify': 'auto_fix_high',
+    'tile-hash': 'tag',
+    'tile-csv2json': 'sync_alt',
+    'tile-uuid': 'fingerprint',
+    'tile-qrgen': 'qr_code_2',
+    'tile-qrread': 'document_scanner',
+    'tile-exif': 'image_search',
+    'tile-filetype': 'description',
+    'tile-unit': 'straighten',
+    'tile-notepad': 'edit_note',
+    'tile-pdf': 'picture_as_pdf',
+    'tile-xmljson': 'swap_horiz',
+    'tile-jsonpath': 'troubleshoot',
+    'tile-handlebar': 'view_stream',
+    'tile-restapi': 'api',
+    'tile-odata': 'database'
+  };
+
+  tools.forEach(tool => {
+    const title = tool.querySelector('h2').textContent;
+    const toolId = tool.id;
+    const iconStr = iconMap[toolId] || 'handyman';
+
+    // Build sidebar link
+    const link = document.createElement('a');
+    link.href = "#";
+    link.className = "nav-item";
+    link.dataset.target = toolId;
+    link.onclick = (e) => { e.preventDefault(); showTool(toolId); };
+    link.innerHTML = `<span class="nav-icon material-symbols-outlined">${iconStr}</span> ${title}`;
+    sidebarNav.appendChild(link);
+
+    // Build dashboard card
+    const card = document.createElement('div');
+    card.className = "dash-card";
+    card.onclick = () => showTool(toolId);
+    card.innerHTML = `
+      <div class="dash-icon material-symbols-outlined">${iconStr}</div>
+      <h3>${title}</h3>
+      <p>Quickly access the ${title} utility tool.</p>
+    `;
+    dashboardGrid.appendChild(card);
+  });
+
+  // Global Cmd/Ctrl + K Macro
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      const searchInput = document.getElementById('toolSearch');
+      if (searchInput) searchInput.focus();
+    }
+  });
+
+  // CodeMirror Initialization
+  window.cmEditors = {};
+  if (typeof CodeMirror !== 'undefined') {
+    const cmConfig = { theme: 'material-ocean', lineNumbers: true, matchBrackets: true };
+    const setupCM = (id, mode) => {
+      const el = document.getElementById(id);
+      if (el) window.cmEditors[id] = CodeMirror.fromTextArea(el, { ...cmConfig, mode });
+    };
+    setupCM('xmljsonInput', 'javascript');
+    setupCM('jpDataInput', 'javascript');
+    setupCM('hbData', 'javascript');
+    setupCM('hbTemplate', 'xml');
+    setupCM('apiHeaders', 'javascript');
+    setupCM('apiBody', 'javascript');
+  }
+
+  // Local Storage Hydration (Inputs)
+  document.querySelectorAll('input:not([type="file"]), select, textarea').forEach(el => {
+    if (el.id && el.id !== 'toolSearch' && !window.cmEditors[el.id]) {
+      const saved = localStorage.getItem('toolbox_' + el.id);
+      if (saved !== null) {
+        if (el.type === 'checkbox') el.checked = saved === 'true';
+        else el.value = saved;
+      }
+      el.addEventListener('input', () => {
+        localStorage.setItem('toolbox_' + el.id, el.type === 'checkbox' ? el.checked : el.value);
+      });
+      el.addEventListener('change', () => {
+        localStorage.setItem('toolbox_' + el.id, el.type === 'checkbox' ? el.checked : el.value);
+      });
+    }
+  });
+
+  // Local Storage Hydration (CodeMirror)
+  for (const key in window.cmEditors) {
+    const saved = localStorage.getItem('toolbox_cm_' + key);
+    if (saved) window.cmEditors[key].setValue(saved);
+    window.cmEditors[key].on('change', () => {
+      localStorage.setItem('toolbox_cm_' + key, window.cmEditors[key].getValue());
+    });
+  }
+});
+
+function getVal(id) {
+  if (window.cmEditors && window.cmEditors[id]) return window.cmEditors[id].getValue().trim();
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : "";
+}
+
+window.showDashboard = function(e) {
+  if (e) e.preventDefault();
+  document.getElementById('view-dashboard').classList.remove('hidden');
+  document.getElementById('all-tools').classList.add('hidden');
+  document.getElementById('page-title').textContent = "Bharath's tool bar";
+  
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector('.nav-item').classList.add('active'); // Dashboard link is first
+};
+
+window.showTool = function(toolId) {
+  document.getElementById('view-dashboard').classList.add('hidden');
+  document.getElementById('all-tools').classList.remove('hidden');
+  
+  document.querySelectorAll('.tile').forEach(t => t.classList.add('hidden'));
+  const activeTool = document.getElementById(toolId);
+  activeTool.classList.remove('hidden');
+  
+  document.getElementById('page-title').textContent = activeTool.querySelector('h2').textContent;
+  
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.remove('active');
+    if (el.dataset.target === toolId) el.classList.add('active');
+  });
+};
+
+window.toggleSidebar = function() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.querySelector('.main-content').classList.toggle('expanded');
+};
+
+document.getElementById('toolSearch')?.addEventListener('input', (e) => {
+  const term = e.target.value.toLowerCase();
+  
+  // Auto-route to dashboard view if they are searching while a tool is open
+  if (term.length > 0 && document.getElementById('view-dashboard').classList.contains('hidden')) {
+    window.showDashboard();
+  }
+  
+  // Filter sidebar links
+  document.querySelectorAll('#sidebar-nav .nav-item').forEach(el => {
+    if (el.textContent.includes('Dashboard')) return;
+    const text = el.textContent.toLowerCase();
+    el.style.display = text.includes(term) ? 'flex' : 'none';
+  });
+
+  // Filter Dashboard Cards 
+  document.querySelectorAll('.dash-card').forEach(el => {
+    const text = el.textContent.toLowerCase();
+    el.style.display = text.includes(term) ? 'flex' : 'none';
+  });
+});
+
+/* -------------------------------------------------------------
    Utility Toolbox – all custom JavaScript in ONE file
    ------------------------------------------------------------- */
 
@@ -228,8 +404,13 @@ document.getElementById('btnExportQRBatch')?.addEventListener('click', () => {
     jsPDF
   } = window.jspdf;
   const doc = new jsPDF();
+  let currentY = 20;
 
   lines.forEach((txt, i) => {
+    if (currentY + 50 > 297) { // A4 height limit
+      doc.addPage();
+      currentY = 20;
+    }
     const canvas = document.createElement('canvas');
     new QRCode(canvas, {
       text: txt,
@@ -237,9 +418,9 @@ document.getElementById('btnExportQRBatch')?.addEventListener('click', () => {
       height: 100
     });
     const imgData = canvas.toDataURL('image/png');
-    const y = 20 + i * 50;
-    doc.addImage(imgData, 'PNG', 15, y, 40, 40);
-    doc.text(txt, 60, y + 15);
+    doc.addImage(imgData, 'PNG', 15, currentY, 40, 40);
+    doc.text(txt, 60, currentY + 15);
+    currentY += 50;
   });
 
   const pdfBlob = doc.output('blob');
@@ -403,7 +584,13 @@ document.getElementById('btnDetectFile')?.addEventListener('click', () => {
   reader.onload = e => {
     const arr = new Uint8Array(e.target.result);
     const hex = Array.from(arr).map(b => b.toString(16).toUpperCase().padStart(2, '0')).join('');
-    const type = signatures[hex] || 'Unknown';
+    let type = 'Unknown';
+    for (const sig in signatures) {
+      if (hex.startsWith(sig)) {
+        type = signatures[sig];
+        break;
+      }
+    }
     document.querySelector('#detectResult .result').textContent = `Signature: ${hex} → ${type}`;
   };
   reader.readAsArrayBuffer(slice);
@@ -455,7 +642,7 @@ document.getElementById('btnFormatDateTime')?.addEventListener('click', () => {
   const input = document.getElementById('dtInput').value.trim();
   if (!input) return alert('Enter a date / timestamp');
   let date;
-  if (!isNaN(input)) date = new Date(parseInt(input, 10));
+  if (!isNaN(input) && input.length >= 10) date = new Date(parseInt(input, 10)); // Treat as unix timestamp only if >= 10 digits
   else date = new Date(input);
   if (isNaN(date)) return alert('Invalid date');
   const iso = date.toISOString();
@@ -561,8 +748,8 @@ HSL: ${h}°, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%`;
 document.getElementById('btnCropResize').addEventListener('click', () => {
   /* ---------- 1️⃣ Grab inputs ---------- */
   const file = document.getElementById('cropImgFile').files[0];
-  const targetW = parseInt(document.getElementById('cropWidth').value, 10);
-  const targetH = parseInt(document.getElementById('cropHeight').value, 10);
+  let targetW = parseInt(document.getElementById('cropWidth').value, 10);
+  let targetH = parseInt(document.getElementById('cropHeight').value, 10);
   const minW = parseInt(document.getElementById('cropMinW').value, 10);
   const minH = parseInt(document.getElementById('cropMinH').value, 10);
   const maxW = parseInt(document.getElementById('cropMaxW').value, 10);
@@ -736,6 +923,10 @@ function renderThumbnails() {
 }
 
 /* ---------- 2️⃣ Page‑size & orientation handling ---------------------- */
+document.getElementById('pdfPageSize').addEventListener('change', (e) => {
+  document.getElementById('pdfCustomSize').style.display = e.target.value === 'custom' ? 'block' : 'none';
+});
+
 function getPageDimensions() {
   const size = document.getElementById('pdfPageSize').value;
   let w, h; // mm
@@ -932,5 +1123,138 @@ function readFileAsDataURL(file) {
    ---------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------
-   End of script.js – all original tools plus the two new ones
+   End of script.js – all original tools plus the new ones
    ------------------------------------------------------------- */
+
+/* ==== 24️⃣ XML ↔ JSON Bi-directional Converter ======================== */
+document.getElementById('btnXmlToJson')?.addEventListener('click', () => {
+  const input = getVal('xmljsonInput');
+  if (!input) return alert('Paste some XML first');
+  try {
+    const x2js = new X2JS();
+    const jsonObj = x2js.xml_str2json(input);
+    if (!jsonObj) throw new Error('Invalid XML structure');
+    document.querySelector('#xmljsonResult .result').textContent = JSON.stringify(jsonObj, null, 4);
+  } catch (e) {
+    document.querySelector('#xmljsonResult .result').textContent = 'Error: ' + e.message;
+  }
+});
+
+document.getElementById('btnJsonToXml')?.addEventListener('click', () => {
+  const input = getVal('xmljsonInput');
+  if (!input) return alert('Paste some JSON first');
+  try {
+    const x2js = new X2JS();
+    const jsonObj = JSON.parse(input);
+    const xmlStr = x2js.json2xml_str(jsonObj);
+    const formatted = typeof html_beautify === 'function' ? html_beautify(xmlStr, { indent_size: 4 }) : xmlStr;
+    document.querySelector('#xmljsonResult .result').textContent = formatted;
+  } catch (e) {
+    document.querySelector('#xmljsonResult .result').textContent = 'Error: ' + e.message;
+  }
+});
+
+/* ==== 25️⃣ JSONPath / Query Extractor ======================== */
+document.getElementById('btnExtractJp')?.addEventListener('click', () => {
+  const jsonStr = getVal('jpDataInput');
+  const query = getVal('jpQuery');
+  if (!jsonStr || !query) return alert('Provide both JSON data and a JSONPath query.');
+  try {
+    const jsonObj = JSON.parse(jsonStr);
+    const result = jsonpath.query(jsonObj, query);
+    document.querySelector('#jpResult .result').textContent = JSON.stringify(result, null, 4);
+  } catch (e) {
+    document.querySelector('#jpResult .result').textContent = 'Error: ' + e.message;
+  }
+});
+
+/* ==== 26️⃣ Template Binding Tester (Handlebars) ======================== */
+document.getElementById('btnBindTemplate')?.addEventListener('click', () => {
+  const dataStr = getVal('hbData');
+  const tmplStr = getVal('hbTemplate');
+  if (!dataStr || !tmplStr) return alert('Provide both JSON data and a template string.');
+  try {
+    const context = JSON.parse(dataStr);
+    const template = Handlebars.compile(tmplStr);
+    const html = template(context);
+    document.querySelector('#hbResult .result').textContent = html;
+  } catch (e) {
+    document.querySelector('#hbResult .result').textContent = 'Error: ' + e.message;
+  }
+});
+
+/* ==== 27️⃣ REST API Client ======================== */
+document.getElementById('btnSendApi')?.addEventListener('click', async () => {
+  const url = getVal('apiUrl');
+  const method = getVal('apiMethod');
+  const headersStr = getVal('apiHeaders');
+  const bodyStr = getVal('apiBody');
+
+  if (!url) return alert('Please enter a valid URL');
+  
+  let headers = {};
+  if (headersStr) {
+    try { headers = JSON.parse(headersStr); }
+    catch (e) { return alert('Headers must be valid JSON'); }
+  }
+
+  const options = { method, headers };
+  if ((method === 'POST' || method === 'PUT' || method === 'PATCH') && bodyStr) {
+    options.body = bodyStr;
+  }
+
+  const resultContainer = document.querySelector('#apiResult .result');
+  const metaContainer = document.getElementById('apiMeta');
+  resultContainer.textContent = "Sending Request...";
+  metaContainer.textContent = "";
+
+  const start = Date.now();
+  try {
+    const response = await fetch(url, options);
+    const duration = Date.now() - start;
+    
+    const contentType = response.headers.get("content-type");
+    let responseData;
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+      responseData = await response.json();
+      responseData = JSON.stringify(responseData, null, 4);
+    } else {
+      responseData = await response.text();
+    }
+    
+    metaContainer.textContent = `Status: ${response.status} ${response.statusText} | Time: ${duration}ms`;
+    resultContainer.textContent = responseData;
+  } catch (e) {
+    const duration = Date.now() - start;
+    metaContainer.textContent = `Time: ${duration}ms | Fetch Failed (Check CORS)`;
+    resultContainer.textContent = 'Error executing request:\n' + e.message;
+  }
+});
+
+/* ==== 28️⃣ OData Query Builder ======================== */
+document.getElementById('btnBuildOdata')?.addEventListener('click', () => {
+  let baseUrl = getVal('odataBaseUrl');
+  if (!baseUrl) return alert('Please provide a Base API Endpoint');
+  
+  const pSelect = getVal('odataSelect');
+  const pFilter = getVal('odataFilter');
+  const pExpand = getVal('odataExpand');
+  const pOrderby = getVal('odataOrderby');
+  const pTop = getVal('odataTop');
+  const pSkip = getVal('odataSkip');
+
+  const params = [];
+  if (pSelect) params.push('$select=' + encodeURIComponent(pSelect));
+  if (pFilter) params.push('$filter=' + encodeURIComponent(pFilter));
+  if (pExpand) params.push('$expand=' + encodeURIComponent(pExpand));
+  if (pOrderby) params.push('$orderby=' + encodeURIComponent(pOrderby));
+  if (pTop) params.push('$top=' + encodeURIComponent(pTop));
+  if (pSkip) params.push('$skip=' + encodeURIComponent(pSkip));
+
+  let finalUrl = baseUrl;
+  if (params.length > 0) {
+    finalUrl += (baseUrl.includes('?') ? '&' : '?') + params.join('&');
+  }
+
+  document.querySelector('#odataResult .result').textContent = finalUrl;
+});

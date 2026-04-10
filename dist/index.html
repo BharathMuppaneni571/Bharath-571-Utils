@@ -6,7 +6,9 @@
   <title>Bharath's personal Tools</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="icon" href="fav.ico" type="image/x-icon">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 
   <!-- 3rd‑party libraries (kept from the original version) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
@@ -17,25 +19,58 @@
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <!-- 3rd‑party libraries (keep the ones you already have) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
-
-  <!-- <-- NEW: HTML & CSS beautifiers (required for the formatter) -->
+  <!-- HTML & CSS beautifiers -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-html.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-css.min.js"></script>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql-formatter/4.0.2/sql-formatter.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+  <!-- Extended Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/x2js/1.2.0/xml2json.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsonpath/1.1.1/jsonpath.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+  <!-- CodeMirror -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-ocean.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/xml/xml.min.js"></script>
 </head>
 
 <body>
-  <h1>Bharath's Personal Toolbox</h1>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header" style="display:flex; justify-content:space-between; align-items:center; padding-left:1.5rem; padding-right:1.5rem;">
+        <div style="display:flex; align-items:center; gap: 0.5rem; overflow:hidden;" class="branding-header">
+          <img src="fav.ico" alt="Bharath" style="width:28px; height:28px; border-radius:50%; min-width:28px;">
+          <h2 id="sidebar-title" style="font-size:1.1rem; white-space:nowrap;">Bharath's tool bar</h2>
+        </div>
+        <button id="btnToggleSidebar" style="width:auto; margin:0; padding:0; background:transparent; font-size:1.4rem; box-shadow:none; color:var(--text-main);" onclick="toggleSidebar()">☰</button>
+      </div>
+      <nav id="sidebar-nav">
+        <a href="#" class="nav-item active" onclick="showDashboard(event)">
+          <span class="nav-icon material-symbols-outlined">home</span> Dashboard
+        </a>
+        <div class="nav-separator">Tools</div>
+        <!-- Tool links injected here by JS -->
+      </nav>
+    </aside>
 
-  <!-- -------------------------------------------------------------
-       Primary tiles – exactly the same as in the original version
-       (only the inline onclick attributes have been removed)
-       ------------------------------------------------------------- -->
-  <div class="tiles">
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-nav" style="justify-content: space-between;">
+        <div style="display:flex; align-items:center; gap: 1rem;">
+          <img src="fav.ico" alt="Bharath" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm);">
+          <h1 id="page-title">Bharath's tool bar</h1>
+        </div>
+        <div class="search-container">
+          <input type="text" id="toolSearch" placeholder="Search tools..." autocomplete="off">
+        </div>
+      </header>
+      
+      <div id="view-dashboard" class="dashboard-grid">
+        <!-- Dashboard cards injected here by JS -->
+      </div>
+      
+      <div id="all-tools" class="hidden">
     <!-- URL Encode / Decode -->
     <div class="tile" id="tile-url">
       <h2>URL Encode / Decode</h2>
@@ -181,7 +216,13 @@
         <option value="270">270°</option>
       </select>
 
-      <!-- 9️⃣ JPEG quality -->
+      <!-- 9️⃣ Output Format & JPEG quality -->
+      <label for="pdfOutFormat">Output format</label>
+      <select id="pdfOutFormat">
+        <option value="png">PNG (lossless - larger file)</option>
+        <option value="jpeg">JPEG (lossy - smaller file)</option>
+      </select>
+
       <label for="pdfQuality">JPEG quality (0.1 – 1, lower = smaller file)</label>
       <input id="pdfQuality" type="range" min="0.1" max="1" step="0.1" value="0.8">
 
@@ -221,16 +262,7 @@
         <div class="result"></div>
       </div>
     </div>
-  </div>
-  </div>
 
-  <hr>
-  <h2 style="text-align:center;color:var(--accent-teal);margin:2rem 0">Other Tools</h2>
-
-  <!-- -------------------------------------------------------------
-       All original “Other Tools” tiles – unchanged except for IDs
-       ------------------------------------------------------------- -->
-  <div class="tiles">
 
     <!-- QR Code (Generate / Scan) -->
     <div class="tile" id="tile-qr">
@@ -546,12 +578,163 @@
         style="margin-top:.5rem;max-width:100%;border:1px solid var(--border);border-radius:var(--radius)">
     </div>
 
-  </div>
+    <!-- ==================== NEW EXTENDED UTILITIES ==================== -->
+
+    <!-- XML ↔ JSON Bi-directional Converter -->
+    <div class="tile" id="tile-xmljson">
+      <h2>XML ↔ JSON Converter</h2>
+      <label for="xmljsonInput">Input (XML or JSON)</label>
+      <textarea id="xmljsonInput" placeholder="Paste XML or JSON payload here" rows="6"></textarea>
+      
+      <div style="display:flex; gap:1rem; margin-top:1rem;">
+        <button id="btnXmlToJson">XML → JSON</button>
+        <button id="btnJsonToXml">JSON → XML</button>
+      </div>
+
+      <h3>Output Result</h3>
+      <div class="output" id="xmljsonResult">
+        <button class="copyBtn" onclick='copyToClipboard("xmljsonResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- JSONPath Extractor -->
+    <div class="tile" id="tile-jsonpath">
+      <h2>JSONPath / Query Extractor</h2>
+      <label for="jpDataInput">Source JSON Data</label>
+      <textarea id="jpDataInput" placeholder="Paste large JSON output (e.g. from Appsmith/Flowise)" rows="5"></textarea>
+      
+      <label for="jpQuery">JSONPath Expression</label>
+      <input id="jpQuery" type="text" placeholder="e.g. $.nodes[*].data.name">
+      
+      <button id="btnExtractJp">Extract Data</button>
+
+      <h3>Extracted Results</h3>
+      <div class="output" id="jpResult">
+        <button class="copyBtn" onclick='copyToClipboard("jpResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- Handlebars Template Binder -->
+    <div class="tile double-tile" id="tile-handlebar">
+      <h2>Template Binding Tester (Handlebars)</h2>
+      
+      <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+        <div style="flex:1; min-width:300px;">
+          <label for="hbData">Binding Data (JSON)</label>
+          <textarea id="hbData" placeholder='{"user": {"name": "Alex"}}' rows="6"></textarea>
+        </div>
+        <div style="flex:1; min-width:300px;">
+          <label for="hbTemplate">Template (Text with {{ }})</label>
+          <textarea id="hbTemplate" placeholder="Hello {{user.name}}! Welcome back." rows="6"></textarea>
+        </div>
+      </div>
+      
+      <button id="btnBindTemplate">Evaluate & Bind Template</button>
+
+      <h3>Generated Output</h3>
+      <div class="output" id="hbResult">
+        <button class="copyBtn" onclick='copyToClipboard("hbResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <!-- REST API Tester -->
+    <div class="tile double-tile" id="tile-restapi">
+      <h2>REST API Client</h2>
+      
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem;">
+        <select id="apiMethod" style="width:120px;">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="DELETE">DELETE</option>
+          <option value="PATCH">PATCH</option>
+        </select>
+        <input id="apiUrl" type="text" placeholder="https://api.example.com/v1/resource" style="flex:1; min-width:300px; margin-top:0.5rem;" />
+      </div>
+
+      <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+        <div style="flex:1; min-width:300px;">
+          <label for="apiHeaders">Headers (JSON)</label>
+          <textarea id="apiHeaders" placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"}' rows="4"></textarea>
+        </div>
+        <div style="flex:1; min-width:300px;">
+          <label for="apiBody">Request Body (JSON)</label>
+          <textarea id="apiBody" placeholder="Request payload here (for POST/PUT)" rows="4"></textarea>
+        </div>
+      </div>
+
+      <button id="btnSendApi">Send Request</button>
+
+      <h3>Response</h3>
+      <p id="apiMeta" style="font-size:0.9rem; color:var(--text-muted); margin-top:0;"></p>
+      <div class="output" id="apiResult" style="height:350px;">
+        <button class="copyBtn" onclick='copyToClipboard("apiResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+    <!-- Native OData Query Builder -->
+    <div class="tile double-tile" id="tile-odata">
+      <h2>OData Query Builder</h2>
+      
+      <label for="odataBaseUrl">Base API Endpoint</label>
+      <input id="odataBaseUrl" type="text" placeholder="https://services.odata.org/V4/TripPinService/People" style="margin-bottom:1rem;" />
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+        <div>
+          <label for="odataSelect">$select (Properties to include)</label>
+          <input id="odataSelect" type="text" placeholder="UserName, FirstName, LastName" />
+        </div>
+        <div>
+          <label for="odataFilter">$filter (Logical condition)</label>
+          <input id="odataFilter" type="text" placeholder="FirstName eq 'Scott'" />
+        </div>
+        <div>
+          <label for="odataExpand">$expand (Navigation property)</label>
+          <input id="odataExpand" type="text" placeholder="Friends" />
+        </div>
+        <div>
+          <label for="odataOrderby">$orderby</label>
+          <input id="odataOrderby" type="text" placeholder="LastName desc" />
+        </div>
+        <div>
+          <label for="odataTop">$top (Integer)</label>
+          <input id="odataTop" type="number" placeholder="10" />
+        </div>
+        <div>
+          <label for="odataSkip">$skip (Integer)</label>
+          <input id="odataSkip" type="number" placeholder="0" />
+        </div>
+      </div>
+
+      <button id="btnBuildOdata" style="margin-top:1.5rem;">Generate OData URI</button>
+
+      <h3>Generated Output URI</h3>
+      <div class="output" id="odataResult" style="height:150px;">
+        <button class="copyBtn" onclick='copyToClipboard("odataResult")'>Copy</button>
+        <div class="result" style="word-break: break-all; white-space: pre-wrap;"></div>
+      </div>
+    </div>
+
+      </div> <!-- end all-tools -->
+    </main>
+  </div> <!-- end app-container -->
 
   <!-- -------------------------------------------------------- -->
   <!--  All custom JavaScript lives in script.js                  -->
   <!-- -------------------------------------------------------- -->
   <script src="script.js"></script>
+  
+  <!-- Register Service Worker for PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed: ', err));
+      });
+    }
+  </script>
 </body>
 
 </html>
