@@ -1,7 +1,15 @@
 {
   "name": "bharath-571-utils",
+  "main": "src/index.js",
   "compatibility_date": "2025-08-29",
   "assets": {
     "directory": "./dist"
-  }
-}
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "toolbox-db",
+      "database_id": "7f2d6a0f-1a74-451f-bb8d-80b16ed10fba"
+    }
+  ]
+}

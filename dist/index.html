@@ -35,6 +35,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/javascript/javascript.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/xml/xml.min.js"></script>
+  <!-- Quill Rich Text -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 </head>
 
 <body>
@@ -60,12 +63,25 @@
     <!-- Main Content -->
     <main class="main-content">
       <header class="top-nav" style="justify-content: space-between;">
-        <div style="display:flex; align-items:center; gap: 1rem;">
+        <div style="display:flex; align-items:center; gap: 1rem; overflow:hidden;">
           <img src="fav.ico" alt="Bharath" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm);">
-          <h1 id="page-title">Bharath's tool bar</h1>
+          <h1 id="page-title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Bharath's tool bar</h1>
+          <button id="btnGlobalHistory" class="btn-history-tool hidden" onclick="window.openHistoryDrawer(window.currentToolId)" style="margin-left:1rem; flex-shrink:0;">
+            <span class="material-symbols-outlined">history</span> Tool History
+          </button>
         </div>
-        <div class="search-container">
-          <input type="text" id="toolSearch" placeholder="Search tools..." autocomplete="off">
+        <div class="search-container" id="searchBox">
+          <div class="search-input-row">
+            <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);flex-shrink:0;">search</span>
+            <input type="text" id="toolSearch" placeholder="Search tools or saved data..." autocomplete="off">
+            <div class="search-mode-row">
+              <label class="search-mode-pill active"><input type="radio" name="searchMode" value="insensitive" checked>Aa</label>
+              <label class="search-mode-pill"><input type="radio" name="searchMode" value="sensitive">Aa!</label>
+              <label class="search-mode-pill"><input type="radio" name="searchMode" value="exact">&ldquo;&hellip;&rdquo;</label>
+              <label class="search-mode-pill"><input type="radio" name="searchMode" value="regex">.*</label>
+            </div>
+          </div>
+          <div id="searchDropdown" class="search-dropdown"></div>
         </div>
       </header>
       
@@ -74,6 +90,32 @@
       </div>
       
       <div id="all-tools" class="hidden">
+    <!-- Notepad (CRUD) -->
+    <div class="tile double-tile" id="tile-notepad">
+      <div style="display:flex; justify-content: space-between; align-items:center;">
+        <h2 style="display:block; margin:0;">Notepad</h2>
+        <div>
+           <button id="btnNotepadDelete" style="width:auto; display:inline-block; margin: 0 0.5rem 0 0; padding: 0.5rem 1rem; background: #e11d48; font-size:0.9rem;">Delete</button>
+           <button id="btnNotepadSave" style="width:auto; display:inline-block; margin:0; padding: 0.5rem 1rem; font-size:0.9rem;">Save Note</button>
+        </div>
+      </div>
+      <div style="display:flex; gap: 1rem; margin-top: 1rem; height: 500px;">
+        <div id="notepadSidebar" style="width: 250px; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--card-border); overflow-y: auto; padding: 1rem;">
+          <h4 style="margin-top:0; color:var(--accent-base);">My Notes</h4>
+          <button id="btnNotepadNew" style="margin-top:0; margin-bottom: 1rem; padding: 0.5rem; font-size: 0.9rem;">+ New Note</button>
+          <div id="notepadList" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column;">
+          <input type="text" id="noteTitle" placeholder="Note ID / Title" style="margin-bottom: 0.5rem;" />
+          <div id="quillEditor" style="flex:1; background: #fff; color: #000; border-radius: 0 0 8px 8px;"></div>
+        </div>
+      </div>
+      <h3 style="margin-top:2rem;">Status</h3>
+      <div class="output" id="notepadResult" style="height:auto; min-height:60px;">
+        <div class="result">Loaded.</div>
+      </div>
+    </div>
+
     <!-- URL Encode / Decode -->
     <div class="tile" id="tile-url">
       <h2>URL Encode / Decode</h2>
@@ -905,6 +947,24 @@
 
       </div> <!-- end all-tools -->
     </main>
+
+    <!-- History Drawer -->
+    <aside id="history-drawer" class="history-drawer hidden-drawer">
+      <div class="history-header">
+        <h2 style="margin:0; font-size:1.5rem; color:var(--text-main);">Tool History</h2>
+        <button onclick="toggleHistoryDrawer()" style="width:auto; margin:0; padding:0 0.5rem; background:transparent; font-size:1.5rem; color:var(--text-main); box-shadow:none;">✕</button>
+      </div>
+      <div style="padding: 1.5rem;">
+        <input type="text" id="historySearch" placeholder="Search this history..." style="margin-bottom: 1rem; background:var(--bg-dark); border-color:var(--card-border); color:var(--text-main);" />
+        <button id="btnClearHistory" style="margin-top: 0; background:#e11d48; margin-bottom: 1.5rem; padding: 0.6rem;">Clear History For Tool</button>
+        <div id="historyList" style="display:flex; flex-direction:column; gap: 1rem;"></div>
+      </div>
+    </aside>
+
+    <!-- Quick Note FAB -->
+    <button id="btnQuickNote" title="Quick Note / Notepad">
+      <span class="material-symbols-outlined" style="font-size:32px;">edit_note</span>
+    </button>
   </div> <!-- end app-container -->
 
   <!-- -------------------------------------------------------- -->

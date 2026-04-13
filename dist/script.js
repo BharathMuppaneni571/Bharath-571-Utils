@@ -1,4 +1,4 @@
-/* -------------------------------------------------------------
+﻿/* -------------------------------------------------------------
    SPA Routing Engine
    ------------------------------------------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
@@ -132,6 +132,8 @@ window.showDashboard = function(e) {
   document.getElementById('view-dashboard').classList.remove('hidden');
   document.getElementById('all-tools').classList.add('hidden');
   document.getElementById('page-title').textContent = "Bharath's tool bar";
+  document.getElementById('btnGlobalHistory').classList.add('hidden');
+  window.currentToolId = null;
   
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelector('.nav-item').classList.add('active'); // Dashboard link is first
@@ -144,8 +146,15 @@ window.showTool = function(toolId) {
   document.querySelectorAll('.tile').forEach(t => t.classList.add('hidden'));
   const activeTool = document.getElementById(toolId);
   activeTool.classList.remove('hidden');
+  window.currentToolId = toolId;
   
   document.getElementById('page-title').textContent = activeTool.querySelector('h2').textContent;
+  
+  if (toolId !== 'tile-notepad') {
+    document.getElementById('btnGlobalHistory').classList.remove('hidden');
+  } else {
+    document.getElementById('btnGlobalHistory').classList.add('hidden');
+  }
   
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.remove('active');
@@ -158,26 +167,109 @@ window.toggleSidebar = function() {
   document.querySelector('.main-content').classList.toggle('expanded');
 };
 
+
+// Search mode pill active class (JS-driven for broad browser support)
+document.querySelectorAll('.search-mode-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.search-mode-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+  });
+});
+// Set initial active
+const defaultPill = document.querySelector('.search-mode-pill input[value="insensitive"]');
+if(defaultPill) defaultPill.closest('.search-mode-pill').classList.add('active');
+let searchDebounce;
 document.getElementById('toolSearch')?.addEventListener('input', (e) => {
-  const term = e.target.value.toLowerCase();
+  const term = e.target.value;
+  const lowerTerm = term.toLowerCase();
   
-  // Auto-route to dashboard view if they are searching while a tool is open
-  if (term.length > 0 && document.getElementById('view-dashboard').classList.contains('hidden')) {
+  // DOM Filtering (Basic Tool Names)
+  if (lowerTerm.length > 0 && document.getElementById('view-dashboard').classList.contains('hidden')) {
     window.showDashboard();
   }
   
-  // Filter sidebar links
   document.querySelectorAll('#sidebar-nav .nav-item').forEach(el => {
     if (el.textContent.includes('Dashboard')) return;
-    const text = el.textContent.toLowerCase();
-    el.style.display = text.includes(term) ? 'flex' : 'none';
+    el.style.display = el.textContent.toLowerCase().includes(lowerTerm) ? 'flex' : 'none';
   });
 
-  // Filter Dashboard Cards 
   document.querySelectorAll('.dash-card').forEach(el => {
-    const text = el.textContent.toLowerCase();
-    el.style.display = text.includes(term) ? 'flex' : 'none';
+    el.style.display = el.textContent.toLowerCase().includes(lowerTerm) ? 'flex' : 'none';
   });
+
+  // Global API Search
+  const dropdown = document.getElementById('searchDropdown');
+  if(!dropdown) return;
+  if(!term) {
+    dropdown.style.display = 'none';
+    return;
+  }
+  
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(async () => {
+    try {
+      const modeNode = document.querySelector('input[name="searchMode"]:checked');
+      const mode = modeNode ? modeNode.value : 'insensitive';
+      
+      const res = await fetch(`/api/search?q=${encodeURIComponent(term)}&mode=${mode}`);
+      if(!res.ok) throw new Error("Search API failed");
+      const results = await res.json();
+      
+      dropdown.innerHTML = '';
+      if(results.length === 0) {
+        dropdown.innerHTML = '<div class="search-empty">No saved data matches found.</div>';
+      } else {
+        results.forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'search-result-item';
+          const isNote = r.type === 'note';
+          const icon = isNote ? 'description' : 'history';
+          const typeLabel = isNote ? 'Note' : 'History';
+          const typeClass = isNote ? 'note' : 'history';
+          const meta = isNote
+            ? (r.time ? new Date(r.time).toLocaleString() : '')
+            : (r.payload ? String(r.payload).replace(/{|}/g, '').substring(0, 80) + '\u2026' : '');
+          item.innerHTML = `
+            <span class="material-symbols-outlined search-result-icon">${icon}</span>
+            <div class="search-result-body">
+              <div class="search-result-title">${r.title}</div>
+              <div class="search-result-meta">${meta}</div>
+            </div>
+            <span class="search-result-type ${typeClass}">${typeLabel}</span>
+          `;
+          if(isNote) {
+            item.onclick = () => {
+              dropdown.style.display = 'none';
+              window.showTool('tile-notepad');
+              setTimeout(() => { window.currentNoteId = r.id; if(typeof loadNotesList === 'function') loadNotesList(); }, 100);
+            };
+          } else {
+            item.onclick = () => {
+              dropdown.style.display = 'none';
+              window.showTool('tile-' + r.title);
+              if(r.payload) {
+                setTimeout(() => {
+                  try { const parsed = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload; if(typeof restoreToolState === 'function') restoreToolState('tile-' + r.title, parsed); } catch(e) {}
+                }, 100);
+              }
+            };
+          }
+          dropdown.appendChild(item);
+        });
+      }
+      dropdown.style.display = 'block';
+    } catch(err) {
+      console.error(err);
+    }
+  }, 400); // 400ms debounce
+});
+
+// Hide dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.search-container')) {
+    const d = document.getElementById('searchDropdown');
+    if(d) d.style.display = 'none';
+  }
 });
 
 /* -------------------------------------------------------------
@@ -1466,3 +1558,298 @@ document.getElementById('btnGenerateImage')?.addEventListener('click', async () 
     statusEl.style.color = '#f87171';
   }
 });
+
+/* ============================================================================
+   Notepad & History D1 API Integration
+============================================================================ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Setup Quick Note FAB
+  const btnQuickNote = document.getElementById('btnQuickNote');
+  if(btnQuickNote) {
+    btnQuickNote.addEventListener('click', () => {
+      window.showTool('tile-notepad');
+    });
+  }
+
+  // 2. Notepad Init
+  if (typeof Quill !== 'undefined' && document.getElementById('quillEditor')) {
+    window.notepadQuill = new Quill('#quillEditor', {
+      theme: 'snow',
+      placeholder: 'Start writing your note...',
+      modules: {
+        toolbar: [
+          [{ 'header': [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+          ['link', 'image', 'code-block'],
+          ['clean']
+        ]
+      }
+    });
+
+    window.currentNoteId = null;
+
+    // Load initial notes list
+    loadNotesList();
+
+    // Auto-save logic (debounced)
+    let saveTimeout = null;
+    window.notepadQuill.on('text-change', () => {
+      if(!window.currentNoteId) return; // if no note is active, don't save
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        saveNote(window.currentNoteId);
+      }, 1000);
+    });
+
+    document.getElementById('btnNotepadSave').addEventListener('click', () => {
+      if(window.currentNoteId) saveNote(window.currentNoteId);
+    });
+
+    document.getElementById('btnNotepadDelete').addEventListener('click', () => {
+      if(window.currentNoteId) deleteNote(window.currentNoteId);
+    });
+
+    document.getElementById('btnNotepadNew').addEventListener('click', () => {
+      window.currentNoteId = 'Note_' + Date.now();
+      document.getElementById('noteTitle').value = window.currentNoteId;
+      window.notepadQuill.root.innerHTML = '';
+      document.getElementById('notepadResult').querySelector('.result').textContent = 'Created new note.';
+      // We don't save immediately to avoid empty notes
+    });
+
+    // Update active note ID on title change
+    document.getElementById('noteTitle').addEventListener('input', (e) => {
+      window.currentNoteId = e.target.value.trim() || null;
+    });
+  }
+
+  // 3. Global Tool Action Interceptor (History Save)
+  document.getElementById('all-tools')?.addEventListener('click', (e) => {
+    // Only intercept action buttons, not copy buttons or notepad toolbar
+    if (e.target.tagName !== 'BUTTON' || e.target.classList.contains('copyBtn') || e.target.closest('#tile-notepad') || e.target.closest('.ql-toolbar')) return;
+    
+    // Some buttons purely navigate or reset, but we intercept most primary actions
+    const tile = e.target.closest('.tile');
+    if (!tile) return;
+    
+    // Wait for the action to finish computing
+    setTimeout(() => {
+      saveToolStateToHistory(tile);
+    }, 800);
+  });
+
+  // History Drawer Clear
+  document.getElementById('btnClearHistory')?.addEventListener('click', async () => {
+    if(!window.currentToolId) return;
+    try {
+      await fetch('/api/history?tool=' + encodeURIComponent(window.currentToolId), { method: 'DELETE' });
+      document.getElementById('historyList').innerHTML = '<div style="color:var(--text-muted);">History cleared.</div>';
+    } catch(err) {
+       console.error("Clear History Error", err);
+    }
+  });
+
+});
+
+async function loadNotesList() {
+  try {
+    const res = await fetch('/api/notes');
+    if(!res.ok) throw new Error("API error");
+    const notes = await res.json();
+    const list = document.getElementById('notepadList');
+    list.innerHTML = '';
+    
+    if(notes.length === 0) {
+      window.currentNoteId = 'My Note 1';
+      document.getElementById('noteTitle').value = window.currentNoteId;
+      return list.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">No notes yet.</div>';
+    }
+
+    notes.forEach(note => {
+      const item = document.createElement('div');
+      item.className = 'note-item';
+      item.textContent = note.id;
+      item.onclick = () => loadNoteData(note);
+      list.appendChild(item);
+    });
+
+    // Load first if none selected
+    if(!window.currentNoteId) {
+      loadNoteData(notes[0]);
+    }
+  } catch(err) {
+    document.getElementById('notepadResult').querySelector('.result').textContent = 'Failed to load notes: ' + err.message;
+  }
+}
+
+function loadNoteData(note) {
+  window.currentNoteId = note.id;
+  document.getElementById('noteTitle').value = note.id;
+  window.notepadQuill.root.innerHTML = note.content;
+  document.getElementById('notepadResult').querySelector('.result').textContent = `Loaded '${note.id}'.`;
+  
+  // Update UI active state
+  document.querySelectorAll('.note-item').forEach(el => {
+    el.classList.toggle('active', el.textContent === note.id);
+  });
+}
+
+async function saveNote(id) {
+  try {
+    const content = window.notepadQuill.root.innerHTML;
+    const res = await fetch('/api/notes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, content })
+    });
+    if(!res.ok) throw new Error("API Error");
+    document.getElementById('notepadResult').querySelector('.result').textContent = `Saved '${id}' at ` + new Date().toLocaleTimeString();
+    loadNotesList(); // Refresh list to catch new items
+  } catch(err) {
+    document.getElementById('notepadResult').querySelector('.result').textContent = 'Failed to save: ' + err.message;
+  }
+}
+
+async function deleteNote(id) {
+  if(!confirm(`Delete note '${id}'?`)) return;
+  try {
+    await fetch(`/api/notes/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    document.getElementById('notepadResult').querySelector('.result').textContent = 'Note deleted.';
+    window.currentNoteId = null;
+    window.notepadQuill.root.innerHTML = '';
+    document.getElementById('noteTitle').value = '';
+    loadNotesList();
+  } catch(err) {
+    document.getElementById('notepadResult').querySelector('.result').textContent = 'Delete failed: ' + err.message;
+  }
+}
+
+/* --- History Drawer Implementation --- */
+
+window.toggleHistoryDrawer = function() {
+  const drawer = document.getElementById('history-drawer');
+  drawer.classList.toggle('hidden-drawer');
+};
+
+window.currentHistoryRecords = [];
+
+window.renderHistoryDrawer = function(records, term = '') {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+  
+  const filtered = records.filter(rec => {
+    if(!term) return true;
+    return rec.payload.toLowerCase().includes(term.toLowerCase());
+  });
+
+  if(filtered.length === 0) {
+    list.innerHTML = '<div style="color:var(--text-muted);">No history matches found.</div>';
+    return;
+  }
+
+  filtered.forEach(rec => {
+    let payload;
+    try { payload = JSON.parse(rec.payload); } catch(e) { payload = rec.payload; }
+    
+    const card = document.createElement('div');
+    card.className = 'history-card';
+    card.style.marginBottom = '0.5rem';
+    
+    const time = new Date(rec.created_at).toLocaleString();
+    let snippet = JSON.stringify(payload).substring(0, 150) + '...';
+
+    card.innerHTML = `
+      <div class="history-card-time">${time}</div>
+      <div class="history-card-preview" style="white-space:normal; font-size:0.8rem; line-height:1.4;">${snippet}</div>
+    `;
+    
+    card.onclick = () => {
+      restoreToolState(window.currentToolId, payload);
+      toggleHistoryDrawer();
+    };
+    
+    list.appendChild(card);
+  });
+};
+
+window.openHistoryDrawer = async function(toolId) {
+  const drawer = document.getElementById('history-drawer');
+  drawer.classList.remove('hidden-drawer');
+  const list = document.getElementById('historyList');
+  list.innerHTML = '<div style="color:var(--text-muted);">Loading history...</div>';
+  document.getElementById('historySearch').value = '';
+
+  try {
+    const res = await fetch('/api/history?tool=' + encodeURIComponent(toolId));
+    if(!res.ok) throw new Error("API Error");
+    window.currentHistoryRecords = await res.json();
+    window.renderHistoryDrawer(window.currentHistoryRecords, '');
+  } catch(err) {
+    list.innerHTML = `<div style="color:#f87171;">Failed to load history: ${err.message}</div>`;
+  }
+};
+
+document.getElementById('historySearch')?.addEventListener('input', (e) => {
+  window.renderHistoryDrawer(window.currentHistoryRecords || [], e.target.value);
+});
+
+async function saveToolStateToHistory(tile) {
+  const inputs = tile.querySelectorAll('input, select, textarea');
+  const payload = {};
+  
+  inputs.forEach(inp => {
+    if(!inp.id || inp.type === 'file') return;
+    if(window.cmEditors && window.cmEditors[inp.id]) {
+      payload[inp.id] = window.cmEditors[inp.id].getValue();
+    } else if (inp.type === 'checkbox') {
+      payload[inp.id] = inp.checked;
+    } else {
+      payload[inp.id] = inp.value;
+    }
+  });
+
+  // Also capture the result text if available
+  const resultDiv = tile.querySelector('.output .result');
+  if (resultDiv && resultDiv.textContent.trim()) {
+    payload['__output_result'] = resultDiv.textContent;
+  }
+
+  // Don't save empty payloads
+  if(Object.keys(payload).length < 1) return;
+
+  try {
+    await fetch('/api/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ toolId: tile.id, payload })
+    });
+  } catch(err) {
+    console.error("Failed to save history", err);
+  }
+}
+
+function restoreToolState(toolId, payload) {
+  const tile = document.getElementById(toolId);
+  if(!tile) return;
+
+  for(const [key, val] of Object.entries(payload)) {
+    if(key === '__output_result') {
+      const res = tile.querySelector('.output .result');
+      if(res) res.textContent = val;
+      continue;
+    }
+
+    if(window.cmEditors && window.cmEditors[key]) {
+      window.cmEditors[key].setValue(val);
+      continue;
+    }
+
+    const el = document.getElementById(key);
+    if(el) {
+      if(el.type === 'checkbox') el.checked = val;
+      else el.value = val;
+    }
+  }
+}
