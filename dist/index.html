@@ -90,29 +90,55 @@
       </div>
       
       <div id="all-tools" class="hidden">
-    <!-- Notepad (CRUD) -->
+    <!-- Notepad (CRUD) - Enhanced -->
     <div class="tile double-tile" id="tile-notepad">
-      <div style="display:flex; justify-content: space-between; align-items:center;">
+      <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
         <h2 style="display:block; margin:0;">Notepad</h2>
-        <div>
-           <button id="btnNotepadDelete" style="width:auto; display:inline-block; margin: 0 0.5rem 0 0; padding: 0.5rem 1rem; background: #e11d48; font-size:0.9rem;">Delete</button>
-           <button id="btnNotepadSave" style="width:auto; display:inline-block; margin:0; padding: 0.5rem 1rem; font-size:0.9rem;">Save Note</button>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button class="note-action-btn" id="btnNotepadDuplicate" title="Duplicate current note">
+            <span class="material-symbols-outlined" style="font-size:15px;">content_copy</span> Duplicate
+          </button>
+          <button class="note-action-btn" id="btnNotepadExportHtml" title="Export as HTML">
+            <span class="material-symbols-outlined" style="font-size:15px;">download</span> Export
+          </button>
+          <button class="note-action-btn" id="btnNotepadRename" title="Rename note">
+            <span class="material-symbols-outlined" style="font-size:15px;">edit</span> Rename
+          </button>
+          <button class="note-action-btn danger" id="btnNotepadDelete" title="Delete note">
+            <span class="material-symbols-outlined" style="font-size:15px;">delete</span> Delete
+          </button>
+          <button id="btnNotepadSave" style="width:auto; display:inline-flex; align-items:center; gap:0.4rem; margin:0; padding: 0.5rem 1rem; font-size:0.9rem;">
+            <span class="material-symbols-outlined" style="font-size:16px;">save</span> Save
+          </button>
         </div>
       </div>
-      <div style="display:flex; gap: 1rem; margin-top: 1rem; height: 500px;">
-        <div id="notepadSidebar" style="width: 250px; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--card-border); overflow-y: auto; padding: 1rem;">
-          <h4 style="margin-top:0; color:var(--accent-base);">My Notes</h4>
-          <button id="btnNotepadNew" style="margin-top:0; margin-bottom: 1rem; padding: 0.5rem; font-size: 0.9rem;">+ New Note</button>
-          <div id="notepadList" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
+
+      <div style="display:flex; gap: 1rem; margin-top: 1rem; height: 520px;">
+        <!-- Notes Sidebar -->
+        <div id="notepadSidebar" style="width: 260px; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--card-border); display:flex; flex-direction:column; padding: 0.75rem;">
+          <button id="btnNotepadNew" style="margin:0 0 0.75rem; padding: 0.5rem; font-size: 0.85rem; display:flex; align-items:center; justify-content:center; gap:0.3rem;">
+            <span class="material-symbols-outlined" style="font-size:16px;">add</span> New Note
+          </button>
+          <input id="notepadSearchInput" placeholder="Search notes..." autocomplete="off" />
+          <!-- Tag filter chips -->
+          <div id="noteTagFilter" class="note-tags-row" style="margin-bottom:0.5rem;"></div>
+          <div id="notepadList" style="display:flex; flex-direction:column; gap:0.4rem; overflow-y:auto; flex:1;"></div>
         </div>
+
+        <!-- Editor Area -->
         <div style="flex:1; display:flex; flex-direction:column;">
-          <input type="text" id="noteTitle" placeholder="Note ID / Title" style="margin-bottom: 0.5rem;" />
-          <div id="quillEditor" style="flex:1; background: #fff; color: #000; border-radius: 0 0 8px 8px;"></div>
+          <input type="text" id="noteTitle" placeholder="Note title..." style="margin-bottom: 0.5rem;" />
+          <input type="text" id="noteTags" placeholder="Tags: #work #snippet #todo  (comma or space separated)" style="margin-bottom: 0.5rem; font-size:0.85rem;" />
+          <div id="quillEditor" style="flex:1; background: #fff; color: #000;"></div>
+          <div class="note-wordcount-bar" id="noteWordCount">
+            Words: <span id="wcWords">0</span> &nbsp;&nbsp; Chars: <span id="wcChars">0</span>
+          </div>
         </div>
       </div>
-      <h3 style="margin-top:2rem;">Status</h3>
-      <div class="output" id="notepadResult" style="height:auto; min-height:60px;">
-        <div class="result">Loaded.</div>
+
+      <!-- Status bar -->
+      <div id="notepadResult" style="margin-top:0.75rem; font-size:0.82rem; color:var(--text-muted); padding:0.4rem 0;">
+        <div class="result">Ready.</div>
       </div>
     </div>
 
@@ -558,6 +584,31 @@
 
     <!-- ==================== NEW TOOLS ==================== -->
 
+    <!-- Text Case Converter -->
+    <div class="tile" id="tile-strconvert">
+      <h2>Text Case Converter</h2>
+      <label for="caseInput">Input Text</label>
+      <textarea id="caseInput" placeholder="Paste your text here..." rows="4"></textarea>
+      <div class="case-btn-grid">
+        <button class="case-btn" onclick="doCase('upper')"><span class="material-symbols-outlined" style="font-size:16px;">text_fields</span><div><div>UPPER CASE</div><div class="case-btn-label">ALL CAPS</div></div></button>
+        <button class="case-btn" onclick="doCase('lower')"><span class="material-symbols-outlined" style="font-size:16px;">text_fields</span><div><div>lower case</div><div class="case-btn-label">all lowercase</div></div></button>
+        <button class="case-btn" onclick="doCase('title')"><span class="material-symbols-outlined" style="font-size:16px;">title</span><div><div>Title Case</div><div class="case-btn-label">First Letter Of Each Word</div></div></button>
+        <button class="case-btn" onclick="doCase('sentence')"><span class="material-symbols-outlined" style="font-size:16px;">short_text</span><div><div>Sentence case</div><div class="case-btn-label">First letter of sentence</div></div></button>
+        <button class="case-btn" onclick="doCase('camel')"><span class="material-symbols-outlined" style="font-size:16px;">code</span><div><div>camelCase</div><div class="case-btn-label">JavaScript variables</div></div></button>
+        <button class="case-btn" onclick="doCase('pascal')"><span class="material-symbols-outlined" style="font-size:16px;">code</span><div><div>PascalCase</div><div class="case-btn-label">Class names</div></div></button>
+        <button class="case-btn" onclick="doCase('snake')"><span class="material-symbols-outlined" style="font-size:16px;">code</span><div><div>snake_case</div><div class="case-btn-label">Python / SQL</div></div></button>
+        <button class="case-btn" onclick="doCase('kebab')"><span class="material-symbols-outlined" style="font-size:16px;">code</span><div><div>kebab-case</div><div class="case-btn-label">CSS / URLs</div></div></button>
+        <button class="case-btn" onclick="doCase('constant')"><span class="material-symbols-outlined" style="font-size:16px;">code</span><div><div>CONSTANT_CASE</div><div class="case-btn-label">Env variables</div></div></button>
+        <button class="case-btn" onclick="doCase('alternating')"><span class="material-symbols-outlined" style="font-size:16px;">swipe</span><div><div>aLtErNaTiNg</div><div class="case-btn-label">mocking case</div></div></button>
+        <button class="case-btn" onclick="doCase('reverse')"><span class="material-symbols-outlined" style="font-size:16px;">swap_horiz</span><div><div>Reverse</div><div class="case-btn-label">txeT esreveR</div></div></button>
+        <button class="case-btn" onclick="doCase('trim')"><span class="material-symbols-outlined" style="font-size:16px;">format_clear</span><div><div>Trim &amp; Clean</div><div class="case-btn-label">Remove extra spaces</div></div></button>
+      </div>
+      <h3>Result</h3>
+      <div class="output" id="caseResult"><button class="copyBtn" onclick='copyToClipboard("caseResult")'>Copy</button>
+        <div class="result"></div>
+      </div>
+    </div>
+
     <!-- ==================== 1️⃣ Crop & Resize Image (new) ==================== -->
     <div class="tile" id="tile-cropresize">
       <h2>Crop &amp; Resize Image</h2>
@@ -966,6 +1017,9 @@
       <span class="material-symbols-outlined" style="font-size:32px;">edit_note</span>
     </button>
   </div> <!-- end app-container -->
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
 
   <!-- -------------------------------------------------------- -->
   <!--  All custom JavaScript lives in script.js                  -->

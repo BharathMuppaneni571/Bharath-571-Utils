@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
   --bg-dark: #0f172a;
@@ -480,16 +480,17 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
 .ql-container.ql-snow { border-color: var(--card-border); }
 
 .note-item {
-  padding: 0.5rem;
-  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
   cursor: pointer;
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   border: 1px solid transparent;
   transition: all 0.2s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  position: relative;
 }
 .note-item:hover {
   background: rgba(255,255,255,0.05);
@@ -499,6 +500,210 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
   background: rgba(20, 184, 166, 0.1);
   color: var(--accent-base);
   border-color: rgba(20, 184, 166, 0.3);
+}
+.note-item-title {
+  font-weight: 600;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.note-item-preview {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.75;
+}
+.note-item-meta {
+  font-size: 0.72rem;
+  color: var(--accent-base);
+  opacity: 0.7;
+}
+.note-pin-icon {
+  font-size: 14px;
+  color: #f59e0b;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+.note-pin-icon:hover { opacity: 1; }
+.note-pin-icon.pinned { opacity: 1; color: #f59e0b; }
+
+/* --- Note Tags --- */
+.note-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+.note-tag {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 20px;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.note-tag:hover, .note-tag.active-filter {
+  background: rgba(139, 92, 246, 0.35);
+  color: #c4b5fd;
+}
+
+/* --- Notepad Word Count Bar --- */
+.note-wordcount-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(15,23,42,0.6);
+  border-radius: 0 0 8px 8px;
+  border: 1px solid var(--card-border);
+  border-top: none;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.note-wordcount-bar span { color: var(--accent-base); font-weight: 600; }
+
+/* --- Notepad Action Buttons --- */
+.note-action-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--card-border);
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  margin: 0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  box-shadow: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.note-action-btn:hover {
+  background: rgba(255,255,255,0.07);
+  color: var(--text-main);
+  border-color: var(--text-muted);
+  transform: none;
+}
+.note-action-btn.danger:hover {
+  background: rgba(225,29,72,0.1);
+  border-color: #e11d48;
+  color: #f87171;
+}
+
+/* --- Dashboard Sections --- */
+.dash-section-title {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--card-border);
+  margin-top: 0.5rem;
+}
+.dash-section-title .material-symbols-outlined { font-size: 18px; }
+
+.dash-card.pinned-card {
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.15), var(--shadow-sm);
+}
+.dash-card.pinned-card .dash-icon {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.dash-card .pin-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: auto;
+  height: auto;
+  padding: 0.2rem 0.4rem;
+  margin: 0;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  box-shadow: none;
+  font-size: 1rem;
+  border-radius: 4px;
+  opacity: 0;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.dash-card:hover .pin-btn { opacity: 1; }
+.dash-card .pin-btn.active {
+  opacity: 1;
+  color: #f59e0b;
+}
+.dash-card { position: relative; }
+
+.dash-card.recent-card {
+  border-color: rgba(20, 184, 166, 0.2);
+}
+
+/* --- Text Case Converter --- */
+.case-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+.case-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin: 0;
+  box-shadow: none;
+}
+.case-btn:hover {
+  background: rgba(20, 184, 166, 0.1);
+  border-color: var(--accent-base);
+  color: var(--accent-base);
+  transform: translateY(-1px);
+}
+.case-btn-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+/* --- Rename input overlay --- */
+.note-rename-input {
+  background: var(--input-bg);
+  border: 1px solid var(--accent-base);
+  border-radius: 6px;
+  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+  width: 100%;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(20,184,166,0.15);
+  display: block;
+  margin: 0;
 }
 /* ---- Search Container ---- */
 .search-container {
@@ -667,4 +872,60 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
   text-align: center;
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+/* --- Note search bar in notepad panel --- */
+#notepadSearchInput {
+  background: var(--input-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  padding: 0.5rem 0.8rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+  display: block;
+  margin: 0 0 0.75rem;
+}
+#notepadSearchInput:focus {
+  border-color: var(--accent-base);
+  box-shadow: 0 0 0 3px rgba(20,184,166,0.12);
+}
+
+/* Toast notification */
+#toast-container {
+  position: fixed;
+  bottom: 6rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+.toast {
+  background: rgba(15,23,42,0.97);
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 0.75rem 1.2rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  backdrop-filter: blur(12px);
+}
+.toast.success { border-color: var(--accent-base); color: var(--accent-base); }
+.toast.error   { border-color: #f87171; color: #f87171; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(10px); }
 }
