@@ -268,7 +268,15 @@ document.addEventListener("DOMContentLoaded", () => {
     link.href = "#";
     link.className = "nav-item";
     link.dataset.target = toolId;
-    link.onclick = (e) => { e.preventDefault(); showTool(toolId); };
+    link.onclick = (e) => { 
+      e.preventDefault(); 
+      showTool(toolId); 
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('mobile-open');
+        const bd = document.getElementById('mobile-backdrop');
+        if (bd) bd.classList.remove('active');
+      }
+    };
     link.innerHTML = `<span class="nav-icon material-symbols-outlined">${iconStr}</span> ${title}`;
     sidebarNav.appendChild(link);
   });
@@ -373,8 +381,18 @@ window.showTool = function(toolId) {
 
 
 window.toggleSidebar = function() {
-  document.getElementById('sidebar').classList.toggle('collapsed');
-  document.querySelector('.main-content').classList.toggle('expanded');
+  const sidebar = document.getElementById('sidebar');
+  if (window.innerWidth <= 768) {
+    sidebar.classList.toggle('mobile-open');
+    const backdrop = document.getElementById('mobile-backdrop');
+    if (backdrop) {
+      if (sidebar.classList.contains('mobile-open')) backdrop.classList.add('active');
+      else backdrop.classList.remove('active');
+    }
+  } else {
+    sidebar.classList.toggle('collapsed');
+    document.querySelector('.main-content').classList.toggle('expanded');
+  }
 };
 
 

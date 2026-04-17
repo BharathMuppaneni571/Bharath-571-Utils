@@ -45,11 +45,11 @@
   <div id="auth-overlay" class="hidden">
     <div class="auth-card">
       <button class="auth-close-btn" onclick="closeAuthModal()" title="Close Modal"><span class="material-symbols-outlined">close</span></button>
-      <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:1.5rem;">
-        <img src="fav.ico" alt="Bharath" style="width:40px; height:40px; border-radius:50%;">
+      <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:0.5rem;">
+        <img src="fav.ico" alt="Bharath" style="width:36px; height:36px; border-radius:50%;">
       </div>
-      <h2>Welcome Back</h2>
-      <p class="auth-subtitle">Sign in to access your private utilities</p>
+      <h2 style="margin: 0.2rem 0; font-size: 1.6rem;">Welcome Back</h2>
+      <p class="auth-subtitle" style="margin-bottom: 1rem;">Sign in to access your private utilities</p>
       
       <div class="auth-tabs">
         <div id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
@@ -107,8 +107,10 @@
 
     <!-- Main Content -->
     <main class="main-content">
+      <div id="mobile-backdrop" class="mobile-backdrop" onclick="toggleSidebar()"></div>
       <header class="top-nav" style="justify-content: space-between;">
         <div style="display:flex; align-items:center; gap: 1rem; overflow:hidden;">
+          <button id="btnMobileToggle" class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
           <img src="fav.ico" alt="Bharath" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm);">
           <h1 id="page-title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Bharath's tool bar</h1>
           <button id="btnGlobalHistory" class="btn-history-tool hidden" onclick="window.openHistoryDrawer(window.currentToolId)" style="margin-left:1rem; flex-shrink:0;">
@@ -173,9 +175,9 @@
         </div>
       </div>
 
-      <div style="display:flex; gap: 1rem; margin-top: 1rem; height: 520px;">
+      <div class="notepad-layout">
         <!-- Notes Sidebar -->
-        <div id="notepadSidebar" style="width: 260px; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--card-border); display:flex; flex-direction:column; padding: 0.75rem;">
+        <div id="notepadSidebar" class="notepad-sidebar">
           <button id="btnNotepadNew" style="margin:0 0 0.75rem; padding: 0.5rem; font-size: 0.85rem; display:flex; align-items:center; justify-content:center; gap:0.3rem;">
             <span class="material-symbols-outlined" style="font-size:16px;">add</span> New Note
           </button>
@@ -186,7 +188,7 @@
         </div>
 
         <!-- Editor Area -->
-        <div style="flex:1; display:flex; flex-direction:column;">
+        <div class="notepad-editor">
           <input type="text" id="noteTitle" placeholder="Note title..." style="margin-bottom: 0.5rem;" />
           <input type="text" id="noteTags" placeholder="Tags: #work #snippet #todo  (comma or space separated)" style="margin-bottom: 0.5rem; font-size:0.85rem;" />
           <div id="quillEditor" style="flex:1; background: #fff; color: #000;"></div>
@@ -839,7 +841,7 @@
       <label for="odataBaseUrl">Base API Endpoint</label>
       <input id="odataBaseUrl" type="text" placeholder="https://services.odata.org/V4/TripPinService/People" style="margin-bottom:1rem;" />
 
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+      <div class="grid-auto-responsive">
         <div>
           <label for="odataSelect">$select (Properties to include)</label>
           <input id="odataSelect" type="text" placeholder="UserName, FirstName, LastName" />
@@ -920,7 +922,7 @@
     <!-- 31: Cron Expression Generator -->
     <div class="tile double-tile" id="tile-cron">
       <h2>Cron Expression Generator</h2>
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+      <div class="grid-auto-responsive" style="margin-bottom: 1rem;">
         <div>
           <label>Minute (0-59)</label>
           <input id="cronMin" type="text" value="0" />
