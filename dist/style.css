@@ -951,9 +951,21 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
   border-radius: 20px;
   width: 100%;
   max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
   padding: 2.5rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   text-align: center;
+}
+.auth-card::-webkit-scrollbar {
+  width: 6px;
+}
+.auth-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+.auth-card::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
 }
 .auth-close-btn {
   display: none;
@@ -1072,15 +1084,20 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
   font-weight: 600;
 }
 .btn-logout {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  color: #fca5a5;
   cursor: pointer;
-  padding: 0.2rem;
+  padding: 0.4rem;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  transition: color 0.2s;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-left: 0.5rem;
 }
 .btn-logout:hover {
+  background: rgba(248, 113, 113, 0.2);
   color: #f87171;
+  transform: scale(1.05);
 }
