@@ -76,6 +76,8 @@ body {
 .sidebar.collapsed .nav-separator { opacity: 0; height: 0; padding: 0; overflow: hidden; margin: 0; }
 /* Hide text node in nav item */
 .sidebar.collapsed .nav-item { color: transparent; white-space: nowrap; }
+.sidebar.collapsed .nav-icon { color: var(--text-muted); }
+.sidebar.collapsed .nav-item.active .nav-icon { color: #fff; }
 
 .sidebar-header {
   display: flex;
@@ -1008,14 +1010,17 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
   inset: 0;
   background: var(--bg-dark);
   z-index: 10000;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 2rem 1rem;
 }
 #auth-overlay.hidden {
   display: none !important;
 }
 .auth-card {
+  margin: auto;
+  flex-shrink: 0;
   position: relative;
   background: rgba(30, 41, 59, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1148,13 +1153,16 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
   border: 1px solid rgba(248, 113, 113, 0.2);
   color: #fca5a5;
   cursor: pointer;
-  padding: 0.4rem;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
+  flex-shrink: 0;
 }
 .btn-logout:hover {
   background: rgba(248, 113, 113, 0.2);
