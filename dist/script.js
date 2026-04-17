@@ -1,7 +1,106 @@
 /* -------------------------------------------------------------
    SPA Routing Engine
    ------------------------------------------------------------- */
+const AUTH_TOKEN_KEY = 'bharath_utils_auth_token';
+const AUTH_USER_KEY = 'bharath_utils_username';
+
+async function authenticatedFetch(url, options = {}) {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  const headers = options.headers || {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  
+  const response = await fetch(url, { ...options, headers });
+  if (response.status === 401 && token) handleLogout();
+  return response;
+}
+
+window.switchAuthTab = function(type) {
+  const loginTab = document.getElementById('tab-login');
+  const registerTab = document.getElementById('tab-register');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  if (type === 'login') {
+    loginTab.classList.add('active'); registerTab.classList.remove('active');
+    loginForm.style.display = 'flex'; registerForm.style.display = 'none';
+  } else {
+    loginTab.classList.remove('active'); registerTab.classList.add('active');
+    loginForm.style.display = 'none'; registerForm.style.display = 'flex';
+  }
+};
+
+window.handleAuth = async function(type) {
+  const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/register';
+  const username = document.getElementById(type === 'login' ? 'login-user' : 'reg-user').value;
+  const password = document.getElementById(type === 'login' ? 'login-pass' : 'reg-pass').value;
+  if (type === 'register' && password !== document.getElementById('reg-pass-confirm').value) {
+    return showToast('Passwords do not match', 'error');
+  }
+  if (!username || !password) return showToast('Username and password required', 'error');
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+      localStorage.setItem(AUTH_USER_KEY, data.username);
+      location.reload();
+    } else showToast(data.error || 'Auth failed', 'error');
+  } catch (err) { showToast('Connection error', 'error'); }
+};
+
+window.handleLogout = function() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_USER_KEY);
+  location.reload();
+};
+
+window.openAuthModal = function() {
+  document.getElementById('auth-overlay').classList.remove('hidden');
+};
+
+window.closeAuthModal = function() {
+  document.getElementById('auth-overlay').classList.add('hidden');
+};
+
+function checkAuthState() {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  const username = localStorage.getItem(AUTH_USER_KEY);
+  const overlay = document.getElementById('auth-overlay');
+  const userSec = document.getElementById('user-section');
+  const loginBtn = document.getElementById('top-login-btn');
+  
+  if (token && username) {
+    if (overlay) overlay.classList.add('hidden');
+    if (userSec) {
+      userSec.style.display = 'flex';
+      document.getElementById('user-initial').textContent = username.charAt(0).toUpperCase();
+      document.getElementById('display-username').textContent = username;
+    }
+    if (loginBtn) loginBtn.style.display = 'none';
+    return true;
+  }
+  
+  if (overlay) overlay.classList.remove('hidden');
+  if (userSec) userSec.style.display = 'none';
+  if (loginBtn) loginBtn.style.display = 'block';
+  return false;
+}
+
+// Initial check before DOMContentLoaded if possible, or just ensure it runs first
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    checkAuthState();
+  });
+} else {
+  checkAuthState();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  if (!checkAuthState()) return;
+
   const tools = Array.from(document.querySelectorAll('.tile'));
   const sidebarNav = document.getElementById('sidebar-nav');
   const dashboardGrid = document.getElementById('view-dashboard');
@@ -46,8 +145,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Build dashboard with sections (Pinned, Recent, All)
   async function buildDashboard() {
     dashboardGrid.innerHTML = '';
-    const pinnedIds  = getPinnedTools();
-    const recentIds  = getRecentTools();
+    const pinnedIds = await getPinnedTools();
+    const recentIds = await getRecentTools();
 
     // ---- Pinned section ----
     if (pinnedIds.length > 0) {
@@ -58,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       pinnedIds.forEach(toolId => {
         const tool = tools.find(t => t.id === toolId);
-        if (tool) dashboardGrid.appendChild(makeCard(tool, true));
+        if (tool) dashboardGrid.appendChild(makeCard(tool, true, pinnedIds));
       });
     }
 
@@ -73,7 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
       validRecents.slice(0, 4).forEach(toolId => {
         const tool = tools.find(t => t.id === toolId);
         if (tool) {
-          const card = makeCard(tool, false);
+          const card = makeCard(tool, false, pinnedIds);
           card.classList.add('recent-card');
           dashboardGrid.appendChild(card);
         }
@@ -86,14 +185,13 @@ document.addEventListener("DOMContentLoaded", () => {
     allTitle.innerHTML = '<span class="material-symbols-outlined">apps</span> All Tools';
     dashboardGrid.appendChild(allTitle);
 
-    tools.forEach(tool => dashboardGrid.appendChild(makeCard(tool, pinnedIds.includes(tool.id))));
+    tools.forEach(tool => dashboardGrid.appendChild(makeCard(tool, pinnedIds.includes(tool.id), pinnedIds)));
   }
 
-  function makeCard(tool, isPinned) {
+  function makeCard(tool, isPinned, pinnedIds) {
     const toolId   = tool.id;
     const title    = tool.querySelector('h2').textContent;
     const iconStr  = iconMap[toolId] || 'handyman';
-    const pinnedIds = getPinnedTools();
     const card = document.createElement('div');
     card.className = 'dash-card' + (isPinned ? ' pinned-card' : '');
     card.onclick  = (e) => { if (!e.target.closest('.pin-btn')) showTool(toolId); };
@@ -101,15 +199,15 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="dash-icon material-symbols-outlined">${iconStr}</div>
       <h3>${title}</h3>
       <p>Quickly access the ${title} utility tool.</p>
-      <button class="pin-btn ${pinnedIds.includes(toolId) ? 'active' : ''}" title="${isPinned ? 'Unpin' : 'Pin'} tool" onclick="togglePinTool('${toolId}')">
-        ${pinnedIds.includes(toolId) ? '📌' : '📍'}
+      <button class="pin-btn ${isPinned ? 'active' : ''}" title="${isPinned ? 'Unpin' : 'Pin'} tool" onclick="togglePinTool('${toolId}')">
+        ${isPinned ? '📌' : '📍'}
       </button>
     `;
     return card;
   }
 
-  window.togglePinTool = function(toolId) {
-    let pins = getPinnedTools();
+  window.togglePinTool = async function(toolId) {
+    let pins = await getPinnedTools();
     if (pins.includes(toolId)) {
       pins = pins.filter(p => p !== toolId);
       showToast('Tool unpinned', 'info');
@@ -117,16 +215,47 @@ document.addEventListener("DOMContentLoaded", () => {
       pins.unshift(toolId);
       showToast('Tool pinned! 📌', 'success');
     }
+    await authenticatedFetch('/api/prefs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'pinnedTools', value: JSON.stringify(pins) })
+    });
     localStorage.setItem('pinnedTools', JSON.stringify(pins));
     buildDashboard();
   };
 
-  function getPinnedTools()  { try { return JSON.parse(localStorage.getItem('pinnedTools')  || '[]'); } catch { return []; } }
-  function getRecentTools()  { try { return JSON.parse(localStorage.getItem('recentTools')  || '[]'); } catch { return []; } }
-  function trackRecentTool(toolId) {
-    let recents = getRecentTools().filter(id => id !== toolId);
+  async function getPinnedTools() {
+    try {
+      const res = await authenticatedFetch('/api/prefs?key=pinnedTools');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.value) return JSON.parse(data.value);
+      }
+    } catch (e) {}
+    try { return JSON.parse(localStorage.getItem('pinnedTools') || '[]'); } catch { return []; }
+  }
+
+  async function getRecentTools() {
+    try {
+      const res = await authenticatedFetch('/api/prefs?key=recentTools');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.value) return JSON.parse(data.value);
+      }
+    } catch (e) {}
+    try { return JSON.parse(localStorage.getItem('recentTools') || '[]'); } catch { return []; }
+  }
+
+  async function trackRecentTool(toolId) {
+    let recents = (await getRecentTools()).filter(id => id !== toolId);
     recents.unshift(toolId);
-    localStorage.setItem('recentTools', JSON.stringify(recents.slice(0, 6)));
+    recents = recents.slice(0, 6);
+    await authenticatedFetch('/api/prefs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'recentTools', value: JSON.stringify(recents) })
+    });
+    localStorage.setItem('recentTools', JSON.stringify(recents));
   }
 
   tools.forEach(tool => {
@@ -292,7 +421,7 @@ document.getElementById('toolSearch')?.addEventListener('input', (e) => {
       const modeNode = document.querySelector('input[name="searchMode"]:checked');
       const mode = modeNode ? modeNode.value : 'insensitive';
       
-      const res = await fetch(`/api/search?q=${encodeURIComponent(term)}&mode=${mode}`);
+      const res = await authenticatedFetch(`/api/search?q=${encodeURIComponent(term)}&mode=${mode}`);
       if(!res.ok) throw new Error("Search API failed");
       const results = await res.json();
       
@@ -1674,7 +1803,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.activeTagFilter = null;
 
     // Load initial notes list
-    loadNotesList();
+    if (localStorage.getItem(AUTH_TOKEN_KEY)) {
+      loadNotesList();
+    }
 
     // Word count live update
     window.notepadQuill.on('text-change', () => {
@@ -1765,7 +1896,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnClearHistory')?.addEventListener('click', async () => {
     if(!window.currentToolId) return;
     try {
-      await fetch('/api/history?tool=' + encodeURIComponent(window.currentToolId), { method: 'DELETE' });
+      await authenticatedFetch('/api/history?tool=' + encodeURIComponent(window.currentToolId), { method: 'DELETE' });
       document.getElementById('historyList').innerHTML = '<div style="color:var(--text-muted);">History cleared.</div>';
     } catch(err) {
        console.error('Clear History Error', err);
@@ -1792,7 +1923,7 @@ function parseTags(raw) {
 
 async function loadNotesList() {
   try {
-    const res = await fetch('/api/notes');
+    const res = await authenticatedFetch('/api/notes');
     if(!res.ok) throw new Error('API error');
     window.allNotes = await res.json();
     renderNoteList('');
@@ -1930,7 +2061,7 @@ async function saveNote(id) {
 
 async function saveNoteRaw(id, content, tags) {
   try {
-    const res = await fetch('/api/notes', {
+    const res = await authenticatedFetch('/api/notes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, content, tags })
@@ -1946,7 +2077,7 @@ async function saveNoteRaw(id, content, tags) {
 async function deleteNote(id) {
   if(!confirm(`Delete note '${id}'? This cannot be undone.`)) return;
   try {
-    await fetch(`/api/notes/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    await authenticatedFetch(`/api/notes/${encodeURIComponent(id)}`, { method: 'DELETE' });
     setNotepadStatus('Note deleted.');
     showToast('Note deleted', 'info');
     window.currentNoteId = null;
@@ -1962,7 +2093,7 @@ async function deleteNote(id) {
 
 async function renameNote(oldId, newId) {
   try {
-    const res = await fetch(`/api/notes/${encodeURIComponent(oldId)}`, {
+    const res = await authenticatedFetch(`/api/notes/${encodeURIComponent(oldId)}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ newId })
@@ -2041,7 +2172,7 @@ window.openHistoryDrawer = async function(toolId) {
   document.getElementById('historySearch').value = '';
 
   try {
-    const res = await fetch('/api/history?tool=' + encodeURIComponent(toolId));
+    const res = await authenticatedFetch('/api/history?tool=' + encodeURIComponent(toolId));
     if(!res.ok) throw new Error('API Error');
     window.currentHistoryRecords = await res.json();
     window.renderHistoryDrawer(window.currentHistoryRecords, '');
@@ -2077,7 +2208,7 @@ async function saveToolStateToHistory(tile) {
   if(Object.keys(payload).length < 1) return;
 
   try {
-    await fetch('/api/history', {
+    await authenticatedFetch('/api/history', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ toolId: tile.id, payload })
@@ -2107,4 +2238,56 @@ function restoreToolState(toolId, payload) {
       else el.value = val;
     }
   }
-}
+}
+
+/* ============================================================================
+   Text Case Converter
+============================================================================ */
+window.doCase = function(type) {
+  const txt = document.getElementById('caseInput')?.value || '';
+  if(!txt) return;
+  let result = '';
+
+  const toWords = s => s.replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ').trim().split(/\s+/);
+
+  switch(type) {
+    case 'upper':      result = txt.toUpperCase(); break;
+    case 'lower':      result = txt.toLowerCase(); break;
+    case 'title':      result = txt.replace(/\b\w/g, c => c.toUpperCase()); break;
+    case 'sentence':   result = txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase(); break;
+    case 'camel':      result = toWords(txt).map((w,i) => i===0 ? w.toLowerCase() : w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(''); break;
+    case 'pascal':     result = toWords(txt).map(w => w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(''); break;
+    case 'snake':      result = toWords(txt).map(w => w.toLowerCase()).join('_'); break;
+    case 'kebab':      result = toWords(txt).map(w => w.toLowerCase()).join('-'); break;
+    case 'constant':   result = toWords(txt).map(w => w.toUpperCase()).join('_'); break;
+    case 'alternating':result = [...txt].map((c,i)=> i%2===0?c.toLowerCase():c.toUpperCase()).join(''); break;
+    case 'reverse':    result = [...txt].reverse().join(''); break;
+    case 'trim':       result = txt.replace(/\s+/g, ' ').trim(); break;
+    default:           result = txt;
+  }
+
+  const resEl = document.querySelector('#caseResult .result');
+  if (resEl) resEl.textContent = result;
+  document.getElementById('caseInput').value = result;
+};
+
+/* ============================================================================
+   Toast Notification System
+============================================================================ */
+window.showToast = function(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if(!container) return;
+
+  const icons = { success: '✓', error: '✗', info: 'ℹ' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${icons[type] || 'ℹ'}</span> ${message}`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.animation = 'toastOut 0.3s ease-out forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 2800);
+};
+

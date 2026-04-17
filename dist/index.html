@@ -41,6 +41,51 @@
 </head>
 
 <body>
+  <!-- Authentication Overlay -->
+  <div id="auth-overlay" class="hidden">
+    <div class="auth-card">
+      <button class="auth-close-btn" onclick="closeAuthModal()" title="Close Modal"><span class="material-symbols-outlined">close</span></button>
+      <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:1.5rem;">
+        <img src="fav.ico" alt="Bharath" style="width:40px; height:40px; border-radius:50%;">
+      </div>
+      <h2>Welcome Back</h2>
+      <p class="auth-subtitle">Sign in to access your private utilities</p>
+      
+      <div class="auth-tabs">
+        <div id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+        <div id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Register</div>
+      </div>
+
+      <div id="login-form" class="auth-form">
+        <div class="auth-field">
+          <label for="login-user">Username</label>
+          <input type="text" id="login-user" class="auth-input" placeholder="Enter your username">
+        </div>
+        <div class="auth-field">
+          <label for="login-pass">Password</label>
+          <input type="password" id="login-pass" class="auth-input" placeholder="••••••••">
+        </div>
+        <button class="auth-submit-btn" onclick="handleAuth('login')">Sign In</button>
+      </div>
+
+      <div id="register-form" class="auth-form" style="display:none;">
+        <div class="auth-field">
+          <label for="reg-user">Username</label>
+          <input type="text" id="reg-user" class="auth-input" placeholder="Choose a username">
+        </div>
+        <div class="auth-field">
+          <label for="reg-pass">Password</label>
+          <input type="password" id="reg-pass" class="auth-input" placeholder="Create a password">
+        </div>
+        <div class="auth-field">
+          <label for="reg-pass-confirm">Confirm Password</label>
+          <input type="password" id="reg-pass-confirm" class="auth-input" placeholder="Repeat password">
+        </div>
+        <button class="auth-submit-btn" onclick="handleAuth('register')">Create Account</button>
+      </div>
+    </div>
+  </div>
+
   <div class="app-container">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
@@ -70,18 +115,33 @@
             <span class="material-symbols-outlined">history</span> Tool History
           </button>
         </div>
-        <div class="search-container" id="searchBox">
-          <div class="search-input-row">
-            <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);flex-shrink:0;">search</span>
-            <input type="text" id="toolSearch" placeholder="Search tools or saved data..." autocomplete="off">
-            <div class="search-mode-row">
-              <label class="search-mode-pill active"><input type="radio" name="searchMode" value="insensitive" checked>Aa</label>
-              <label class="search-mode-pill"><input type="radio" name="searchMode" value="sensitive">Aa!</label>
-              <label class="search-mode-pill"><input type="radio" name="searchMode" value="exact">&ldquo;&hellip;&rdquo;</label>
-              <label class="search-mode-pill"><input type="radio" name="searchMode" value="regex">.*</label>
+        <div style="display:flex; align-items:center; gap: 1.5rem;">
+          <div class="search-container" id="searchBox">
+            <div class="search-input-row">
+              <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-muted);flex-shrink:0;">search</span>
+              <input type="text" id="toolSearch" placeholder="Search tools or saved data..." autocomplete="off">
+              <div class="search-mode-row">
+                <label class="search-mode-pill active"><input type="radio" name="searchMode" value="insensitive" checked>Aa</label>
+                <label class="search-mode-pill"><input type="radio" name="searchMode" value="sensitive">Aa!</label>
+                <label class="search-mode-pill"><input type="radio" name="searchMode" value="exact">&ldquo;&hellip;&rdquo;</label>
+                <label class="search-mode-pill"><input type="radio" name="searchMode" value="regex">.*</label>
+              </div>
+            </div>
+            <div id="searchDropdown" class="search-dropdown"></div>
+          </div>
+          
+          <div id="top-auth-container" style="display:flex; align-items:center; padding-left:1.5rem; border-left:1px solid rgba(255,255,255,0.1);">
+            <button id="top-login-btn" class="auth-submit-btn" style="margin:0; padding:0.6rem 1.2rem; font-size: 0.9rem;" onclick="openAuthModal()">Sign In</button>
+            <div class="sidebar-user-section" id="user-section" style="display:none; margin:0; padding:0; border:none;">
+              <div class="user-avatar" id="user-initial">B</div>
+              <div class="user-info">
+                <div class="user-name" id="display-username">Bharath</div>
+              </div>
+              <button class="btn-logout" title="Logout" onclick="handleLogout()">
+                <span class="material-symbols-outlined">logout</span>
+              </button>
             </div>
           </div>
-          <div id="searchDropdown" class="search-dropdown"></div>
         </div>
       </header>
       
@@ -1024,7 +1084,7 @@
   <!-- -------------------------------------------------------- -->
   <!--  All custom JavaScript lives in script.js                  -->
   <!-- -------------------------------------------------------- -->
-  <script src="script.js"></script>
+  <script src="script.js?v=2"></script>
   
   <!-- Register Service Worker for PWA -->
   <script>
