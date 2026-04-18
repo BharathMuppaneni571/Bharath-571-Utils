@@ -4,7 +4,7 @@ const urlsToCache = [
   './index.html',
   './style.css',
   './script.js',
-  './fav.ico'
+  './BH571%20logo.svg'
 ];
 
 self.addEventListener('install', event => {

@@ -11,8 +11,11 @@
   <div class="popup-container">
     <header class="popup-header">
       <div class="branding">
-        <img src="fav.ico" alt="Logo" class="logo">
-        <h1>BH571 quick units</h1>
+        <button id="back-btn" class="icon-btn hidden" title="Back to Tools">
+          <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <img src="logo.svg" alt="Logo" class="logo">
+        <h1 id="header-title">BH571 quick units</h1>
       </div>
       <button id="logout-btn" class="icon-btn hidden" title="Logout">
         <span class="material-symbols-outlined">power_settings_new</span>
@@ -73,6 +76,28 @@
       
       <div id="tool-list" class="tool-list">
         <!-- Tools will be injected here -->
+      </div>
+    </div>
+
+    <!-- Tool Runner State -->
+    <div id="runner-view" class="view hidden">
+      <div class="runner-toolbar">
+        <button id="btn-copy-result" class="icon-btn" title="Copy Result">
+          <span class="material-symbols-outlined">content_copy</span>
+        </button>
+        <button id="btn-show-history" class="icon-btn" title="Show History">
+          <span class="material-symbols-outlined">history</span>
+        </button>
+      </div>
+      <div id="history-panel" class="history-panel hidden">
+        <div class="history-header">
+          <span>Recent Results</span>
+          <button id="btn-clear-history" class="icon-btn small"><span class="material-symbols-outlined">delete</span></button>
+        </div>
+        <div id="history-items" class="history-items"></div>
+      </div>
+      <div id="runner-content" class="runner-content">
+        <!-- Tool UI will be injected here -->
       </div>
     </div>
 

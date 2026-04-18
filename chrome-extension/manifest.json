@@ -6,16 +6,17 @@
   "description": "Your fastest utility dashboard for quick data units and tools.",
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "fav.ico"
+    "default_icon": "logo.svg"
   },
   "icons": {
-    "16": "fav.ico",
-    "48": "fav.ico",
-    "128": "fav.ico"
+    "16": "logo.png",
+    "48": "logo.png",
+    "128": "logo.png"
   },
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "cookies"
   ],
   "host_permissions": [
     "https://*/*"

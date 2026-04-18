@@ -48,7 +48,8 @@ async function handleApiRequest(request, env, url, headers) {
       .bind(id, username, passwordHash).run();
 
     const token = await generateJWT({ userId: id, username }, env.JWT_SECRET || 'fallback_secret');
-    return jsonResponse({ success: true, token, username }, headers);
+    const cookie = `bharath_utils_auth_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000; Secure`;
+    return jsonResponse({ success: true, token, username }, { ...headers, 'Set-Cookie': cookie });
   }
 
   if (url.pathname === '/api/auth/login' && method === 'POST') {
@@ -62,7 +63,8 @@ async function handleApiRequest(request, env, url, headers) {
     if (computedHash !== hash) return errorResponse(401, 'Invalid credentials', headers);
 
     const token = await generateJWT({ userId: user.id, username }, env.JWT_SECRET || 'fallback_secret');
-    return jsonResponse({ success: true, token, username }, headers);
+    const cookie = `bharath_utils_auth_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000; Secure`;
+    return jsonResponse({ success: true, token, username }, { ...headers, 'Set-Cookie': cookie });
   }
 
   // ------------ PROTECTED AREA ------------
