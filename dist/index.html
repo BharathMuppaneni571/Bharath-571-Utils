@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="icon" href="fav.ico" type="image/x-icon">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=10">
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 
@@ -126,6 +126,55 @@
     </div>
   </div>
 
+  <!-- Mode Picker Overlay -->
+  <div id="mode-picker-overlay" class="hidden">
+    <div class="mode-picker-card">
+      <button class="mode-picker-close" onclick="closeModeSelector()" title="Close">
+        <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+      </button>
+      <p class="mode-picker-title">Choose Your Mode</p>
+      <p class="mode-picker-subtitle">Pick a theme that matches your vibe ✨</p>
+      <div class="mode-grid">
+        <button class="mode-card m-dark" onclick="applyMode('dark')" id="mode-btn-dark">
+          <span class="mode-card-emoji">🌌</span>
+          <p class="mode-card-name">Default Dark</p>
+          <p class="mode-card-desc">Deep space, teal accents</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+        <button class="mode-card m-light" onclick="applyMode('light')" id="mode-btn-light">
+          <span class="mode-card-emoji">☀️</span>
+          <p class="mode-card-name">Light</p>
+          <p class="mode-card-desc">Clean & minimal</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+        <button class="mode-card m-naruto" onclick="applyMode('naruto')" id="mode-btn-naruto">
+          <span class="mode-card-emoji">🍥</span>
+          <p class="mode-card-name">Naruto</p>
+          <p class="mode-card-desc">Orange flames, Hidden Leaf</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+        <button class="mode-card m-pokemon" onclick="applyMode('pokemon')" id="mode-btn-pokemon">
+          <span class="mode-card-emoji">⚡</span>
+          <p class="mode-card-name">Pokémon</p>
+          <p class="mode-card-desc">Bold blue, Pokéball gold</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+        <button class="mode-card m-cyberpunk" onclick="applyMode('cyberpunk')" id="mode-btn-cyberpunk">
+          <span class="mode-card-emoji">🤖</span>
+          <p class="mode-card-name">Cyberpunk</p>
+          <p class="mode-card-desc">Neon cyan, deep void</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+        <button class="mode-card m-rickmorty" onclick="applyMode('rickmorty')" id="mode-btn-rickmorty">
+          <span class="mode-card-emoji">🌀</span>
+          <p class="mode-card-name">Rick & Morty</p>
+          <p class="mode-card-desc">Portals, matrix rain</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="app-container">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
@@ -189,8 +238,8 @@
                 <button class="note-action-btn" onclick="openProfileModal()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
                   Profile <span class="material-symbols-outlined" style="font-size:18px;">account_circle</span>
                 </button>
-                <button class="note-action-btn" onclick="toggleTheme()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
-                  Theme <span id="theme-icon" class="material-symbols-outlined" style="font-size:18px;">dark_mode</span>
+                <button class="note-action-btn" onclick="openModeSelector()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
+                  Mode <span id="mode-icon" class="material-symbols-outlined" style="font-size:18px;">palette</span>
                 </button>
                 <button class="note-action-btn danger" onclick="handleLogout()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
                   Logout <span class="material-symbols-outlined" style="font-size:18px;">power_settings_new</span>
