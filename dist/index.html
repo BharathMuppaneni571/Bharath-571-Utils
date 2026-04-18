@@ -61,11 +61,11 @@
       <div id="login-form" class="auth-form">
         <div class="auth-field">
           <label for="login-user">Username</label>
-          <input type="text" id="login-user" class="auth-input" placeholder="Enter your username">
+          <input type="text" id="login-user" class="auth-input" placeholder="Enter your username" onkeydown="if(event.key === 'Enter') handleAuth('login')">
         </div>
         <div class="auth-field">
           <label for="login-pass">Password</label>
-          <input type="password" id="login-pass" class="auth-input" placeholder="••••••••">
+          <input type="password" id="login-pass" class="auth-input" placeholder="••••••••" onkeydown="if(event.key === 'Enter') handleAuth('login')">
         </div>
         <button class="auth-submit-btn" onclick="handleAuth('login')">Sign In</button>
       </div>
@@ -73,15 +73,15 @@
       <div id="register-form" class="auth-form" style="display:none;">
         <div class="auth-field">
           <label for="reg-user">Username</label>
-          <input type="text" id="reg-user" class="auth-input" placeholder="Choose a username">
+          <input type="text" id="reg-user" class="auth-input" placeholder="Choose a username" onkeydown="if(event.key === 'Enter') handleAuth('register')">
         </div>
         <div class="auth-field">
           <label for="reg-pass">Password</label>
-          <input type="password" id="reg-pass" class="auth-input" placeholder="Create a password">
+          <input type="password" id="reg-pass" class="auth-input" placeholder="Create a password" onkeydown="if(event.key === 'Enter') handleAuth('register')">
         </div>
         <div class="auth-field">
           <label for="reg-pass-confirm">Confirm Password</label>
-          <input type="password" id="reg-pass-confirm" class="auth-input" placeholder="Repeat password">
+          <input type="password" id="reg-pass-confirm" class="auth-input" placeholder="Repeat password" onkeydown="if(event.key === 'Enter') handleAuth('register')">
         </div>
         <button class="auth-submit-btn" onclick="handleAuth('register')">Create Account</button>
       </div>
@@ -103,7 +103,7 @@
       </div>
       <nav id="sidebar-nav">
         <a href="#" class="nav-item active" onclick="showDashboard(event)">
-          <span class="nav-icon material-symbols-outlined">home</span> Dashboard
+          <span class="nav-icon material-symbols-outlined">home</span> <span class="nav-text">Dashboard</span>
         </a>
         <div class="nav-separator">Tools</div>
         <!-- Tool links injected here by JS -->
@@ -148,14 +148,22 @@
             <button id="top-login-btn" class="auth-submit-btn"
               style="margin:0; padding:0.6rem 1.2rem; font-size: 0.9rem;" onclick="openAuthModal()">Sign In</button>
             <div class="sidebar-user-section" id="user-section"
-              style="display:none; margin:0; padding:0; border:none; gap: 0.5rem;">
-              <div class="user-avatar" id="user-initial">B</div>
+              style="display:none; margin:0; padding:0; border:none; gap: 0.5rem; position: relative;">
+              <div class="user-avatar" id="user-initial" onclick="toggleProfilePopover()" style="cursor: pointer;">B</div>
+              
+              <!-- Popover Menu -->
+              <div id="profile-popover" class="hidden" style="position: absolute; top: calc(100% + 10px); right: 0; background: var(--bg-sidebar); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 0.5rem; box-shadow: var(--shadow-lg); flex-direction: column; gap: 0.5rem; min-width: 180px; z-index: 100;">
+                <button class="note-action-btn" onclick="toggleTheme()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
+                  Theme <span class="material-symbols-outlined" style="font-size:18px;">dark_mode</span>
+                </button>
+                <button class="note-action-btn danger" onclick="handleLogout()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
+                  Logout <span class="material-symbols-outlined" style="font-size:18px;">power_settings_new</span>
+                </button>
+              </div>
+
               <div class="user-info" style="display:none;">
                 <div class="user-name" id="display-username">Bharath</div>
               </div>
-              <button class="btn-logout" title="Logout" onclick="handleLogout()">
-                <span class="material-symbols-outlined" style="font-size:18px;">power_settings_new</span>
-              </button>
             </div>
           </div>
         </div>

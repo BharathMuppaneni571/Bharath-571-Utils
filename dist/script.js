@@ -89,6 +89,32 @@ function checkAuthState() {
   return false;
 }
 
+window.toggleProfilePopover = function() {
+  const popover = document.getElementById('profile-popover');
+  if (popover.classList.contains('hidden')) {
+    popover.classList.remove('hidden');
+    popover.style.display = 'flex';
+  } else {
+    popover.classList.add('hidden');
+    popover.style.display = 'none';
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const popover = document.getElementById('profile-popover');
+  const userInit = document.getElementById('user-initial');
+  if (popover && !popover.classList.contains('hidden') && e.target !== userInit && (!userInit || !userInit.contains(e.target)) && (!popover || !popover.contains(e.target))) {
+    popover.classList.add('hidden');
+    popover.style.display = 'none';
+  }
+});
+
+window.toggleTheme = function() {
+  document.body.classList.toggle('light-mode');
+  const isLight = document.body.classList.contains('light-mode');
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
+
 // Initial check before DOMContentLoaded if possible, or just ensure it runs first
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
@@ -99,6 +125,9 @@ if (document.readyState === 'loading') {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light-mode');
+  }
   if (!checkAuthState()) return;
 
   const tools = Array.from(document.querySelectorAll('.tile'));
@@ -277,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (bd) bd.classList.remove('active');
       }
     };
-    link.innerHTML = `<span class="nav-icon material-symbols-outlined">${iconStr}</span> ${title}`;
+    link.innerHTML = `<span class="nav-icon material-symbols-outlined">${iconStr}</span> <span class="nav-text">${title}</span>`;
     sidebarNav.appendChild(link);
   });
 

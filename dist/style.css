@@ -22,6 +22,43 @@
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
+body.light-mode {
+  --bg-dark: #f8fafc;
+  --bg-sidebar: rgba(255, 255, 255, 0.85);
+  --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  --card-bg: rgba(255, 255, 255, 0.6);
+  --card-bg-hover: rgba(255, 255, 255, 0.9);
+  --card-border: rgba(0, 0, 0, 0.1);
+  --card-border-hover: rgba(0, 0, 0, 0.2);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --input-bg: rgba(255, 255, 255, 0.8);
+  --copy-bg: rgba(20, 184, 166, 0.15);
+  --copy-bg-hover: rgba(20, 184, 166, 0.3);
+  --copy-text: #0d9488;
+}
+
+body.light-mode .output {
+  background: #f1f5f9;
+  border: 1px solid rgba(0,0,0,0.1);
+  color: #334155;
+}
+
+body.light-mode .top-nav {
+  background: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+body.light-mode .nav-item:hover, 
+body.light-mode .nav-item.active {
+  background: rgba(0,0,0,0.05);
+  color: var(--text-main);
+}
+body.light-mode .nav-item.active {
+  background: rgba(20, 184, 166, 0.1);
+  color: var(--accent-hover);
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -75,7 +112,7 @@ body {
 .sidebar.collapsed .nav-icon { margin-right: 0; font-size: 1.3rem; }
 .sidebar.collapsed .nav-separator { opacity: 0; height: 0; padding: 0; overflow: hidden; margin: 0; }
 /* Hide text node in nav item */
-.sidebar.collapsed .nav-item { color: transparent; white-space: nowrap; }
+.sidebar.collapsed .nav-text { display: none; }
 .sidebar.collapsed .nav-icon { color: var(--text-muted); }
 .sidebar.collapsed .nav-item.active .nav-icon { color: #fff; }
 
