@@ -16,7 +16,7 @@ Since this extension is optimized for your private backend, you can install it m
 
 ### 2. Configuration
 The extension is pre-configured to communicate with your Cloudflare Worker backend.
-- **Backend URL**: `https://bharath-571-utils.sony.workers.dev`
+- **Backend URL**: `https://bharath-571-utils.muppanenibharath571.workers.dev`
 - **Session Sync**: Logging into the extension popup automatically logs you into the main dashboard tab.
 
 ---

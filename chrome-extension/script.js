@@ -1,7 +1,7 @@
 /* -------------------------------------------------------------
    SPA Routing Engine
    ------------------------------------------------------------- */
-const API_BASE_URL = 'https://bharath-571-utils.sony.workers.dev';
+const API_BASE_URL = 'https://bharath-571-utils.muppanenibharath571.workers.dev';
 const AUTH_TOKEN_KEY = 'bharath_utils_auth_token';
 const AUTH_USER_KEY = 'bharath_utils_username';
 
@@ -229,12 +229,6 @@ async function checkAuthState() {
       document.getElementById('display-username').textContent = username;
     }
     if (loginBtn) loginBtn.style.display = 'none';
-    
-    // Hash-based routing check
-    const toolId = window.location.hash.substring(1);
-    if (toolId && toolId.startsWith('tile-')) {
-      setTimeout(() => { if(window.showTool) window.showTool(toolId); }, 200);
-    }
     return true;
   }
   
@@ -613,16 +607,23 @@ window.applyMode = async function(mode) {
 // Legacy alias
 window.toggleTheme = window.openModeSelector;
 
-// Initial check before DOMContentLoaded if possible, or just ensure it runs first
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    initAuthOverlay();
-    checkAuthState();
-  });
-} else {
-  initAuthOverlay();
-  checkAuthState();
-}
+// Initial check when script loads
+(async function init() {
+  await initAuthOverlay();
+  const loggedIn = await checkAuthState();
+  
+  if (loggedIn) {
+    // Handle deep linking at the very end when all functions are defined
+    const toolId = window.location.hash.substring(1);
+    if (toolId && toolId.startsWith('tile-')) {
+      setTimeout(() => {
+        if (typeof window.showTool === 'function') {
+          window.showTool(toolId);
+        }
+      }, 300);
+    }
+  }
+})();
 
 /* ====================================================
    ⭐ Auth Overlay Initialisation (stars + reveal)

@@ -1,6 +1,5 @@
-// ------------- CONFIGURATION -------------
 // REPLACE THIS URL with your production Cloudflare Worker URL
-const API_BASE_URL = 'https://bharath-571-utils.sony.workers.dev'; 
+const API_BASE_URL = 'https://bharath-571-utils.muppanenibharath571.workers.dev'; 
 
 const AUTH_TOKEN_KEY = 'bharath_utils_auth_token';
 const AUTH_USER_KEY = 'bharath_utils_username';
