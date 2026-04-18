@@ -5,9 +5,26 @@ const API_BASE_URL = 'https://bharath-571-utils.muppanenibharath571.workers.dev'
 const AUTH_TOKEN_KEY = 'bharath_utils_auth_token';
 const AUTH_USER_KEY = 'bharath_utils_username';
 
+// 🛡️ Robust Auth Storage Utility (Handles Extension & Web Contexts)
+const getAuthToken = async () => {
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    const data = await chrome.storage.local.get([AUTH_TOKEN_KEY]);
+    return data[AUTH_TOKEN_KEY];
+  }
+  return localStorage.getItem(AUTH_TOKEN_KEY);
+};
+
+const setAuthData = async (token, username) => {
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    await chrome.storage.local.set({ [AUTH_TOKEN_KEY]: token, [AUTH_USER_KEY]: username });
+  } else {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    localStorage.setItem(AUTH_USER_KEY, username);
+  }
+};
+
 async function authenticatedFetch(url, options = {}) {
-  const data = await chrome.storage.local.get([AUTH_TOKEN_KEY]);
-  const token = data[AUTH_TOKEN_KEY];
+  const token = await getAuthToken();
   const headers = options.headers || {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
   
@@ -15,6 +32,18 @@ async function authenticatedFetch(url, options = {}) {
   const response = await fetch(absoluteUrl, { ...options, headers });
   if (response.status === 401 && token) handleLogout();
   return response;
+}
+
+// 🌐 Unified Search Engine for Cloud Data
+async function searchCloudData(query) {
+  if (!query || query.length < 2) return [];
+  try {
+    const res = await authenticatedFetch(`/api/search?q=${encodeURIComponent(query)}&mode=insensitive`);
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn("Nexus Cloud Search Error:", err);
+  }
+  return [];
 }
 
 window.switchAuthTab = function(type) {
@@ -51,10 +80,7 @@ window.handleAuth = async function(type) {
     });
     const data = await res.json();
     if (res.ok) {
-      await chrome.storage.local.set({
-        [AUTH_TOKEN_KEY]: data.token,
-        [AUTH_USER_KEY]: data.username
-      });
+      await setAuthData(data.token, data.username);
       // 🌀 SUCCESS: Black hole suck-in animation then reload
       triggerBlackHoleAnimation(() => location.reload());
     } else {
@@ -2959,32 +2985,61 @@ async function renderCommandResults(query) {
   // 2. Tools
   const filteredTools = (window._toolIndex || []).filter(t => t.title.toLowerCase().includes(query));
 
-  const all = [...filteredActions, ...filteredTools];
+  // 3. Cloud Data (Notes & History)
+  const cloudResults = await searchCloudData(query);
+
+  const all = [
+    ...filteredActions, 
+    ...filteredTools.map(t => ({ ...t, type: 'tool' })),
+    ...cloudResults.map(r => ({ ...r, title: r.title || r.type, type: r.type }))
+  ];
   
   if (all.length === 0) {
-    container.innerHTML = '<div style="padding:1rem;color:var(--text-muted);text-align:center;">No results found...</div>';
+    container.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted);">No matching tools or saved data found.</div>`;
     return;
   }
 
-  all.slice(0, 10).forEach(item => {
+  all.forEach(item => {
     const el = document.createElement('div');
     el.className = "cmd-item";
+    
+    // Icon & Type Logic
+    let icon = 'bolt';
+    let typeLabel = item.type || 'action';
+    if (item.type === 'tool') icon = item.icon || 'handyman';
+    else if (item.type === 'note') icon = 'description';
+    else if (item.type === 'history') icon = 'history';
+
     el.innerHTML = `
-      <span class="material-symbols-outlined">${item.icon || 'star'}</span>
-      <span>${item.title}</span>
-      ${item.hint ? `<span class="cmd-hint">${item.hint}</span>` : ""}
-      <span class="cmd-hint" style="background:transparent;border:none;">⏎</span>
+      <span class="material-symbols-outlined">${icon}</span>
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <span style="font-weight:600; font-size: 0.95rem;">${item.title}</span>
+        <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">${typeLabel}</span>
+      </div>
+      <span class="cmd-hint">${item.id && item.type !== 'tool' ? 'Cloud' : 'Nexus'}</span>
     `;
+
     el.onclick = () => {
-      if (item.id) {
-        window.showTool(item.id);
-      } else if (item.cmd) {
-        // execute action logic here if needed, for now just show tool
-        if (item.cmd.includes('note')) window.showTool('tile-notepad');
-        else if (item.cmd.includes('b64')) window.showTool('tile-b64');
-        else if (item.cmd.includes('json')) window.showTool('tile-json');
-      }
       window.closeCommandPalette();
+      if (item.type === 'tool') {
+        window.showTool(item.id);
+      } else if (item.type === 'note') {
+        window.showTool('tile-Notepad');
+        setTimeout(() => { 
+          window.currentNoteId = item.id; 
+          if(typeof loadNotesList === 'function') loadNotesList(); 
+        }, 150);
+      } else if (item.type === 'history' && item.payload) {
+        try {
+          const payload = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
+          window.showTool('tile-' + item.title);
+          setTimeout(() => { if(typeof restoreToolState === 'function') restoreToolState('tile-' + item.title, payload); }, 150);
+        } catch(e) {}
+      } else if (item.action) {
+        item.action();
+      } else if (item.id) {
+        window.showTool(item.id);
+      }
     };
     container.appendChild(el);
   });

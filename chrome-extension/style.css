@@ -955,136 +955,121 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
 .grid-auto-responsive { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
 
 @media (max-width: 768px) {
-  .mobile-menu-btn { display: block; }
+  .mobile-menu-btn { 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    margin: 0;
+    background: var(--card-bg-hover);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    font-size: 1.4rem;
+    box-shadow: none;
+    color: var(--text-main);
+  }
   
   /* Two-Tier Mobile Header */
   .top-nav {
-    flex-direction: column;
-    padding: 0.8rem 1rem !important;
-    gap: 0.8rem;
+    flex-direction: column !important;
+    padding: 0.75rem 1rem !important;
+    gap: 0.75rem !important;
     height: auto !important;
   }
 
-  /* Tier 1: Logo & Profile */
+  /* Row 1: Identity & Profile */
   .top-nav > div:first-of-type {
-    width: 100%;
-    justify-content: space-between;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.5rem;
   }
   
-  .top-nav img[alt="Bharath"] {
-    width: 36px !important;
-    height: 36px !important;
-  }
-
   #page-title { 
-    display: none; 
+    display: block !important;
+    font-size: 1.1rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
   }
 
-  /* Tier 2: Unified Search */
+  .top-nav img[alt="Bharath"] {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 2px !important;
+  }
+
+  /* Row 2: Fully Vertical Search */
   .search-container {
-    order: 3;
-    width: 100%;
-    margin-top: 0;
+    order: 2 !important;
+    width: 100% !important;
+    margin: 0 !important;
   }
 
   .search-input-row {
-    padding: 0.4rem 0.6rem;
+    padding: 0.45rem 0.75rem !important;
+    background: var(--input-bg);
+    border-radius: 10px;
   }
 
   .search-mode-row {
-    gap: 0.1rem;
-  }
-
-  .search-mode-pill {
-    padding: 0.15rem 0.35rem;
-    font-size: 0.65rem;
+    display: none !important; /* Hide pills on tier 2 to maximize input space */
   }
   
   #top-auth-container {
-    border-left: none !important;
-    padding-left: 0 !important;
-    margin-left: auto;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    order: 3; /* Move to end of Row 1 flex if needed, but flex-between handles it */
   }
 
-  /* Component Layouts */
-  .dashboard-container {
-    padding: 1rem;
-  }
+  /* Dashboard Adjustments */
+  .dashboard-container { padding: 1rem; }
 
   .dashboard-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.5rem;
     padding: 0;
   }
 
   .dash-card {
-    padding: 1.25rem;
+    padding: 1.2rem;
     border-radius: 16px;
+    min-height: 160px;
   }
 
   .dash-icon {
     font-size: 2.2rem;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.6rem;
   }
 
-  .dash-card h3 {
-    font-size: 1.1rem;
-  }
+  .dash-card h3 { font-size: 1.05rem; margin-bottom: 0.25rem; }
+  .dash-card p { font-size: 0.82rem; line-height: 1.3; }
 
-  .dash-card p {
-    font-size: 0.85rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+  .pin-btn { opacity: 1 !important; transform: none !important; top: 10px; right: 10px; }
 
-  /* Sidebar Drawer */
-  .sidebar {
-    width: 85% !important;
-    max-width: 320px;
-    transform: translateX(-100%);
-    box-shadow: none;
-  }
-  
-  /* Command Palette Mobile */
-  .cmd-palette-overlay {
-    padding-top: 0;
-    align-items: stretch;
-  }
-
+  /* Command Palette - Mobile Full Screen */
+  .cmd-palette-overlay { padding-top: 0; align-items: stretch; }
   .cmd-palette-modal {
     max-width: none;
-    height: 100%;
+    height: 100vh;
     border-radius: 0;
     border: none;
     transform: translateY(100%);
   }
+  .cmd-palette-overlay.open .cmd-palette-modal { transform: translateY(0); }
 
-  .cmd-palette-overlay.open .cmd-palette-modal {
-    transform: translateY(0);
-  }
-
-  /* FAB & Toast Positioning */
-  #btnQuickNote {
-    bottom: 1.5rem;
-    right: 1.5rem;
-    width: 56px;
-    height: 56px;
-  }
-
-  #toast-container {
-    bottom: 6rem;
-    left: 1rem;
-    right: 1rem;
-    align-items: center;
-  }
-
-  .toast {
-    width: 100%;
-    max-width: 400px;
-  }
+  /* FAB positioning to avoid covering content */
+  #btnQuickNote { bottom: 1.5rem; right: 1.5rem; width: 52px; height: 52px; }
+  
+  #toast-container { bottom: 5rem; left: 0.5rem; right: 0.5rem; width: auto; align-items: center; }
+  .toast { width: calc(100% - 1rem); }
 }
 
 /* --- Notepad & History Drawer Additions --- */
