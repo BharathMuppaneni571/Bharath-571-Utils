@@ -6,10 +6,11 @@
   "description": "Your fastest utility dashboard for quick data units and tools.",
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "logo.svg"
+    "default_icon": "logo.png"
   },
   "icons": {
     "16": "logo.png",
+    "32": "logo.png",
     "48": "logo.png",
     "128": "logo.png"
   },
