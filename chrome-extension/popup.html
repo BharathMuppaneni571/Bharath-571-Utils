@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BH571 Quick Units</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
   <link rel="stylesheet" href="popup.css">
 </head>
+
 <body class="dark-mode">
   <div class="popup-container">
     <header class="popup-header">
@@ -14,7 +17,7 @@
         <button id="back-btn" class="icon-btn hidden" title="Back to Tools">
           <span class="material-symbols-outlined">arrow_back</span>
         </button>
-        <img src="logo.svg" alt="Logo" class="logo">
+        <img src="logo.png" alt="Logo" class="logo">
         <h1 id="header-title">BH571 quick units</h1>
       </div>
       <button id="logout-btn" class="icon-btn hidden" title="Logout">
@@ -27,7 +30,7 @@
       <div class="auth-card">
         <h2>Welcome Back</h2>
         <p>Sign in to access your utilities</p>
-        
+
         <div class="input-group">
           <span class="material-symbols-outlined">person</span>
           <input type="text" id="username" placeholder="Username">
@@ -36,7 +39,7 @@
           <span class="material-symbols-outlined">lock</span>
           <input type="password" id="password" placeholder="Password">
         </div>
-        
+
         <button id="login-btn" class="primary-btn">Sign In</button>
         <button id="register-toggle-btn" class="secondary-btn">Create New Account</button>
         <p class="footer-note">Use your BH571 account</p>
@@ -48,7 +51,7 @@
       <div class="auth-card">
         <h2>Join BH571</h2>
         <p>Create your private tool account</p>
-        
+
         <div class="input-group">
           <span class="material-symbols-outlined">person</span>
           <input type="text" id="reg-username" placeholder="Username">
@@ -61,7 +64,7 @@
           <span class="material-symbols-outlined">verified_user</span>
           <input type="password" id="reg-confirm" placeholder="Confirm Password">
         </div>
-        
+
         <button id="register-btn" class="primary-btn">Register</button>
         <button id="login-toggle-btn" class="secondary-btn">Back to Login</button>
       </div>
@@ -73,7 +76,7 @@
         <span class="material-symbols-outlined">search</span>
         <input type="text" id="tool-search" placeholder="Search 30+ tools...">
       </div>
-      
+
       <div id="tool-list" class="tool-list">
         <!-- Tools will be injected here -->
       </div>
@@ -92,7 +95,8 @@
       <div id="history-panel" class="history-panel hidden">
         <div class="history-header">
           <span>Recent Results</span>
-          <button id="btn-clear-history" class="icon-btn small"><span class="material-symbols-outlined">delete</span></button>
+          <button id="btn-clear-history" class="icon-btn small"><span
+              class="material-symbols-outlined">delete</span></button>
         </div>
         <div id="history-items" class="history-items"></div>
       </div>
@@ -105,4 +109,5 @@
   </div>
   <script src="popup.js"></script>
 </body>
+
 </html>
