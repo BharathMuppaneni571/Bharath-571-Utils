@@ -70,6 +70,27 @@ async function handleApiRequest(request, env, url, headers) {
   if (!user) return errorResponse(401, 'Unauthorized', headers);
   const userId = user.userId;
 
+  // ------------ USER PROFILE ------------
+  if (url.pathname === '/api/auth/update_password' && method === 'POST') {
+    const { oldPassword, newPassword } = await request.json();
+    if (!oldPassword || !newPassword) return errorResponse(400, 'Missing password fields', headers);
+
+    const fullUser = await env.DB.prepare('SELECT password_hash FROM users WHERE id = ?').bind(userId).first();
+    if (!fullUser) return errorResponse(404, 'User not found', headers);
+
+    const [algo, salt, hash] = fullUser.password_hash.split('$');
+    const computedOldHash = await hashPassword(oldPassword, salt);
+    if (computedOldHash !== hash) return errorResponse(401, 'Incorrect current password', headers);
+
+    const newSalt = crypto.getRandomValues(new Uint8Array(16));
+    const newSaltHex = Array.from(newSalt).map(b => b.toString(16).padStart(2, '0')).join('');
+    const newHash = await hashPassword(newPassword, newSaltHex);
+    const newPasswordHash = `pbkdf2$${newSaltHex}$${newHash}`;
+
+    await env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?').bind(newPasswordHash, userId).run();
+    return jsonResponse({ success: true }, headers);
+  }
+
   // ------------ NOTES CRUD ------------
   if (url.pathname === '/api/notes') {
     if (method === 'GET') {

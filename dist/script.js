@@ -109,10 +109,63 @@ document.addEventListener('click', (e) => {
   }
 });
 
+window.openProfileModal = function() {
+  const username = localStorage.getItem(AUTH_USER_KEY);
+  if (!username) return;
+  document.getElementById('profile-username').value = username;
+  document.getElementById('profile-overlay').classList.remove('hidden');
+  document.getElementById('profile-popover').classList.add('hidden');
+}
+
+window.closeProfileModal = function() {
+  document.getElementById('profile-overlay').classList.add('hidden');
+  document.getElementById('profile-old-pass').value = '';
+  document.getElementById('profile-new-pass').value = '';
+  document.getElementById('profile-confirm-pass').value = '';
+}
+
+window.handleUpdatePassword = async function() {
+  const oldPass = document.getElementById('profile-old-pass').value;
+  const newPass = document.getElementById('profile-new-pass').value;
+  const confirmPass = document.getElementById('profile-confirm-pass').value;
+
+  if (!oldPass || !newPass) {
+    return typeof showToast === 'function' ? showToast('Please enter both current and new passwords.', 'error') : alert('Please enter both current and new passwords.');
+  }
+  if (newPass !== confirmPass) {
+    return typeof showToast === 'function' ? showToast('New passwords do not match.', 'error') : alert('New passwords do not match.');
+  }
+
+  try {
+    const res = await authenticatedFetch('/api/auth/update_password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      if(typeof showToast === 'function') showToast('Password updated! Please login again.', 'success');
+      else alert('Password updated! Please login again.');
+      setTimeout(handleLogout, 2000);
+    } else {
+      if(typeof showToast === 'function') showToast(data.error || 'Failed to update password', 'error');
+      else alert(data.error || 'Failed to update password');
+    }
+  } catch (err) { 
+    if(typeof showToast === 'function') showToast('Connection error', 'error');
+    else alert('Connection error');
+  }
+}
+
 window.toggleTheme = function() {
   document.body.classList.toggle('light-mode');
   const isLight = document.body.classList.contains('light-mode');
   localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  
+  const themeIcon = document.getElementById('theme-icon');
+  if (themeIcon) {
+    themeIcon.textContent = isLight ? 'light_mode' : 'dark_mode';
+  }
 }
 
 // Initial check before DOMContentLoaded if possible, or just ensure it runs first
@@ -125,8 +178,13 @@ if (document.readyState === 'loading') {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (localStorage.getItem('theme') === 'light') {
+  const isLight = localStorage.getItem('theme') === 'light';
+  if (isLight) {
     document.body.classList.add('light-mode');
+  }
+  const themeIcon = document.getElementById('theme-icon');
+  if (themeIcon) {
+    themeIcon.textContent = isLight ? 'light_mode' : 'dark_mode';
   }
   if (!checkAuthState()) return;
 
@@ -306,6 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (bd) bd.classList.remove('active');
       }
     };
+    link.dataset.tooltip = title;
     link.innerHTML = `<span class="nav-icon material-symbols-outlined">${iconStr}</span> <span class="nav-text">${title}</span>`;
     sidebarNav.appendChild(link);
   });

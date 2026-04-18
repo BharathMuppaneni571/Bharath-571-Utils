@@ -88,6 +88,38 @@
     </div>
   </div>
 
+  <!-- Profile Overlay -->
+  <div id="profile-overlay" class="hidden">
+    <div class="auth-card">
+      <button class="auth-close-btn" onclick="closeProfileModal()" title="Close Modal"><span class="material-symbols-outlined">close</span></button>
+      <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:0.5rem;">
+        <span class="material-symbols-outlined" style="font-size:36px; padding:6px; background:var(--card-border); border-radius:50%; color:var(--accent-base);">account_circle</span>
+      </div>
+      <h2 style="margin: 0.2rem 0; font-size: 1.6rem;">User Profile</h2>
+      <p class="auth-subtitle" style="margin-bottom: 1rem;">View details and update password</p>
+
+      <div id="profile-form" class="auth-form">
+        <div class="auth-field">
+          <label>Username</label>
+          <input type="text" id="profile-username" class="auth-input" readonly disabled style="opacity: 0.7; cursor: not-allowed;">
+        </div>
+        <div class="auth-field">
+          <label for="profile-old-pass">Current Password</label>
+          <input type="password" id="profile-old-pass" class="auth-input" placeholder="Enter current password">
+        </div>
+        <div class="auth-field">
+          <label for="profile-new-pass">New Password</label>
+          <input type="password" id="profile-new-pass" class="auth-input" placeholder="Enter new password">
+        </div>
+        <div class="auth-field">
+          <label for="profile-confirm-pass">Confirm New Password</label>
+          <input type="password" id="profile-confirm-pass" class="auth-input" placeholder="Confirm new password">
+        </div>
+        <button class="auth-submit-btn" onclick="handleUpdatePassword()">Update Password</button>
+      </div>
+    </div>
+  </div>
+
   <div class="app-container">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
@@ -102,7 +134,7 @@
           onclick="toggleSidebar()">☰</button>
       </div>
       <nav id="sidebar-nav">
-        <a href="#" class="nav-item active" onclick="showDashboard(event)">
+        <a href="#" class="nav-item active" onclick="showDashboard(event)" data-tooltip="Dashboard">
           <span class="nav-icon material-symbols-outlined">home</span> <span class="nav-text">Dashboard</span>
         </a>
         <div class="nav-separator">Tools</div>
@@ -153,8 +185,11 @@
               
               <!-- Popover Menu -->
               <div id="profile-popover" class="hidden" style="position: absolute; top: calc(100% + 10px); right: 0; background: var(--bg-sidebar); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 0.5rem; box-shadow: var(--shadow-lg); flex-direction: column; gap: 0.5rem; min-width: 180px; z-index: 100;">
+                <button class="note-action-btn" onclick="openProfileModal()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
+                  Profile <span class="material-symbols-outlined" style="font-size:18px;">account_circle</span>
+                </button>
                 <button class="note-action-btn" onclick="toggleTheme()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
-                  Theme <span class="material-symbols-outlined" style="font-size:18px;">dark_mode</span>
+                  Theme <span id="theme-icon" class="material-symbols-outlined" style="font-size:18px;">dark_mode</span>
                 </button>
                 <button class="note-action-btn danger" onclick="handleLogout()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
                   Logout <span class="material-symbols-outlined" style="font-size:18px;">power_settings_new</span>
