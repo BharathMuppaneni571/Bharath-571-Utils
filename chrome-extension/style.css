@@ -971,61 +971,69 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
     color: var(--text-main);
   }
   
-  /* Two-Tier Mobile Header */
+  /* Precision Grid Mobile Header */
   .top-nav {
-    flex-direction: column !important;
-    padding: 0.75rem 1rem !important;
+    display: grid !important;
+    grid-template-areas: 
+      "menu logo auth"
+      "search search search";
+    grid-template-columns: 44px 1fr 44px;
+    grid-template-rows: auto auto;
+    padding: 0.5rem 1rem !important;
     gap: 0.75rem !important;
     height: auto !important;
+    align-items: center;
   }
 
-  /* Row 1: Identity & Profile */
-  .top-nav > div:first-of-type {
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 0.5rem;
-  }
+  /* Map elements to grid areas */
+  .mobile-menu-btn { grid-area: menu; margin: 0 !important; }
   
-  #page-title { 
-    display: block !important;
-    font-size: 1.1rem !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0;
+  .top-nav > div:first-of-type img { 
+    grid-area: logo;
+    margin: 0 auto !important;
+    position: static !important;
+    transform: none !important;
+    width: 36px !important;
+    height: 36px !important;
   }
 
-  .top-nav img[alt="Bharath"] {
-    width: 32px !important;
-    height: 32px !important;
-    padding: 2px !important;
-  }
+  #page-title { display: none !important; }
 
-  /* Row 2: Fully Vertical Search */
-  .search-container {
-    order: 2 !important;
+  .search-container { 
+    grid-area: search;
     width: 100% !important;
     margin: 0 !important;
   }
 
   .search-input-row {
-    padding: 0.45rem 0.75rem !important;
+    padding: 0.6rem 1rem !important;
     background: var(--input-bg);
-    border-radius: 10px;
+    border-radius: 20px;
+    width: 100% !important;
   }
 
-  .search-mode-row {
-    display: none !important; /* Hide pills on tier 2 to maximize input space */
-  }
-  
   #top-auth-container {
+    grid-area: auth;
+    display: flex !important;
+    justify-content: flex-end;
     border: none !important;
     padding: 0 !important;
     margin: 0 !important;
-    order: 3; /* Move to end of Row 1 flex if needed, but flex-between handles it */
+  }
+
+  /* Scale avatar for mobile row */
+  .user-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.9rem !important;
+  }
+  
+  /* Hide search pills on mobile search row */
+  .search-mode-row { display: none !important; }
+
+  /* Ensure the second div doesn't add its own layout on top */
+  .top-nav > div:last-of-type {
+    display: contents !important;
   }
 
   /* Dashboard Adjustments */
