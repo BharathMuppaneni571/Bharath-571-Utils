@@ -1,10 +1,11 @@
-const CACHE_NAME = 'toolbox-cache-v2';
+const CACHE_NAME = 'toolbox-cache-v3';
 const urlsToCache = [
   './',
   './index.html',
   './style.css',
   './script.js',
-  './BH571%20logo.svg'
+  './logo.svg',
+  './logo.png'
 ];
 
 self.addEventListener('install', event => {

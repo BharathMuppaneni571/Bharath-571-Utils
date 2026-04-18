@@ -62,7 +62,6 @@ body {
   height: 48px;
   border-radius: 8px;
   object-fit: contain;
-  box-shadow: 0 4px 12px var(--accent-glow);
 }
 
 h1 {
