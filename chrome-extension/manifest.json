@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "BH571 quick units",
-  "short_name": "BH571 Units",
+  "name": "Nexus-571",
+  "short_name": "Nexus-571",
   "version": "1.1.0",
   "description": "Your fastest utility dashboard for quick data units and tools.",
   "action": {

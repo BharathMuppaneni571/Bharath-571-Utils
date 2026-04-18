@@ -194,11 +194,11 @@ function showView(view) {
 
   if (view === 'auth') {
     authView.classList.remove('hidden');
-    headerTitle.textContent = 'BH571 quick units';
+    headerTitle.textContent = 'Nexus-571';
     backBtn.classList.add('hidden');
   } else if (view === 'register') {
     registerView.classList.remove('hidden');
-    headerTitle.textContent = 'Join BH571';
+    headerTitle.textContent = 'Nexus-571';
     backBtn.classList.remove('hidden');
   } else if (view === 'runner') {
     runnerView.classList.remove('hidden');
@@ -206,7 +206,7 @@ function showView(view) {
   } else {
     toolsView.classList.remove('hidden');
     logoutBtn.classList.remove('hidden');
-    headerTitle.textContent = 'BH571 quick units';
+    headerTitle.textContent = 'Nexus-571';
     backBtn.classList.add('hidden');
   }
 }
