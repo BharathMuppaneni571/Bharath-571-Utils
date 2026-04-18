@@ -436,9 +436,6 @@ window.showDashboard = function(e) {
   document.getElementById('view-dashboard').classList.remove('hidden');
   document.getElementById('all-tools').classList.add('hidden');
   document.getElementById('page-title').textContent = "Bharath's tool bar";
-  document.getElementById('btnGlobalHistory').classList.add('hidden');
-  const fab = document.getElementById('btnHistoryFAB');
-  if (fab) fab.classList.add('hidden');
   window.currentToolId = null;
   
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -457,15 +454,7 @@ window.showTool = function(toolId) {
   
   document.getElementById('page-title').textContent = activeTool.querySelector('h2').textContent;
   
-  if (toolId !== 'tile-notepad') {
-    document.getElementById('btnGlobalHistory').classList.remove('hidden');
-    const fab = document.getElementById('btnHistoryFAB');
-    if (fab) fab.classList.remove('hidden');
-  } else {
-    document.getElementById('btnGlobalHistory').classList.add('hidden');
-    const fab = document.getElementById('btnHistoryFAB');
-    if (fab) fab.classList.add('hidden');
-  }
+  // History is displayed inline per tool now, no global buttons to toggle
   
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.remove('active');
@@ -2432,5 +2421,41 @@ document.addEventListener('mouseout', (e) => {
       }
     }, 200);
   }
+});
+
+/* ============================================================================
+   Tool Level Options & Auto-History Save
+============================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Inject Tool-Level History buttons into every tile explicitly
+  document.querySelectorAll('.tile').forEach(tile => {
+    if (tile.id === 'tile-notepad') return;
+    const bar = document.createElement('div');
+    bar.style.cssText = "display: flex; justify-content: flex-end; margin-bottom: 1rem;";
+    bar.innerHTML = `<button class="btn-history-tool" onclick="window.openHistoryDrawer('${tile.id}')" style="margin:0; box-shadow:none; border:1px solid var(--card-border); background:var(--card-bg-hover);">
+      <span class="material-symbols-outlined" style="font-size:18px;">history</span> Tool History
+    </button>`;
+    tile.insertBefore(bar, tile.firstChild);
+  });
+});
+
+// Auto-save history when users execute tool actions
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  
+  const tile = btn.closest('.tile');
+  if (!tile || tile.id === 'tile-notepad') return;
+  
+  const text = btn.textContent.toLowerCase();
+  // Exclude utility buttons from triggering a save
+  if (text.includes('copy') || text.includes('history') || text.includes('clear') || btn.classList.contains('copyBtn')) return;
+
+  // Slight delay allows the tool logic to compute and populate its result DOM before scraping payload
+  setTimeout(() => {
+    if (typeof saveToolStateToHistory === 'function') {
+      saveToolStateToHistory(tile);
+    }
+  }, 400);
 });
 
