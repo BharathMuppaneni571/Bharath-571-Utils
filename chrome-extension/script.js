@@ -803,8 +803,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Build initial dashboard (Global Nexus Engine)
   if (typeof buildDashboard === 'function') buildDashboard();
 
-  // 3D Tilt & Mouse Tracking Engine
+  // 3D Tilt & Mouse Tracking Engine (Disabled on Touch Devices for Performance/Stability)
+  const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+
   document.addEventListener('mousemove', (e) => {
+    if (isTouchDevice) return;
+    
     // 1. Set Global Parallax Variables
     const moveX = (e.clientX - window.innerWidth / 2) / 25;
     const moveY = (e.clientY - window.innerHeight / 2) / 25;
@@ -832,6 +836,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.addEventListener('mouseout', (e) => {
+    if (isTouchDevice) return;
     const card = e.target.closest('.dash-card');
     if (card) {
       card.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
@@ -937,12 +942,17 @@ window.showTool = function(toolId) {
 
 window.toggleSidebar = function() {
   const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('mobile-backdrop');
   if (window.innerWidth <= 768) {
     sidebar.classList.toggle('mobile-open');
-    const backdrop = document.getElementById('mobile-backdrop');
     if (backdrop) {
-      if (sidebar.classList.contains('mobile-open')) backdrop.classList.add('active');
-      else backdrop.classList.remove('active');
+      if (sidebar.classList.contains('mobile-open')) {
+        backdrop.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } else {
+        backdrop.classList.remove('active');
+        document.body.style.overflow = '';
+      }
     }
   } else {
     sidebar.classList.toggle('collapsed');

@@ -956,46 +956,135 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
 
 @media (max-width: 768px) {
   .mobile-menu-btn { display: block; }
-
-  /* Top Navigation */
+  
+  /* Two-Tier Mobile Header */
   .top-nav {
     flex-direction: column;
-    align-items: stretch !important;
-    gap: 1rem;
-    padding: 1rem !important;
+    padding: 0.8rem 1rem !important;
+    gap: 0.8rem;
+    height: auto !important;
   }
-  #page-title { display: none; } /* Hide long text on mobile */
-  .search-container { order: 3; width: 100%; margin-top: 0.5rem; }
-  .search-container input { width: 100% !important; }
-  #top-auth-container { border-left: none !important; padding-left: 0 !important; justify-content: space-between; width: 100%; }
+
+  /* Tier 1: Logo & Profile */
+  .top-nav > div:first-of-type {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .top-nav img[alt="Bharath"] {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  #page-title { 
+    display: none; 
+  }
+
+  /* Tier 2: Unified Search */
+  .search-container {
+    order: 3;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .search-input-row {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .search-mode-row {
+    gap: 0.1rem;
+  }
+
+  .search-mode-pill {
+    padding: 0.15rem 0.35rem;
+    font-size: 0.65rem;
+  }
+  
+  #top-auth-container {
+    border-left: none !important;
+    padding-left: 0 !important;
+    margin-left: auto;
+  }
+
+  /* Component Layouts */
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0;
+  }
+
+  .dash-card {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .dash-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .dash-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .dash-card p {
+    font-size: 0.85rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 
   /* Sidebar Drawer */
   .sidebar {
-    width: 80% !important; max-width: 300px;
+    width: 85% !important;
+    max-width: 320px;
     transform: translateX(-100%);
     box-shadow: none;
   }
-  .sidebar.mobile-open {
-    transform: translateX(0);
-    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  
+  /* Command Palette Mobile */
+  .cmd-palette-overlay {
+    padding-top: 0;
+    align-items: stretch;
   }
-  .main-content { margin-left: 0 !important; }
 
-  /* Auth Card */
-  .auth-card { padding: 1.2rem 1.5rem !important; }
+  .cmd-palette-modal {
+    max-width: none;
+    height: 100%;
+    border-radius: 0;
+    border: none;
+    transform: translateY(100%);
+  }
 
-  /* Tools */
-  .dashboard-grid { grid-template-columns: 1fr; padding: 1rem; }
-  #all-tools { padding: 0.5rem; }
-  .grid-auto-responsive { grid-template-columns: 1fr; }
+  .cmd-palette-overlay.open .cmd-palette-modal {
+    transform: translateY(0);
+  }
 
-  /* History Drawer */
-  .history-drawer { width: 100%; }
+  /* FAB & Toast Positioning */
+  #btnQuickNote {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+  }
 
-  /* Notepad */
-  .notepad-layout { flex-direction: column; height: auto; }
-  .notepad-sidebar { width: 100%; max-height: 250px; }
-  .notepad-editor { height: 400px; }
+  #toast-container {
+    bottom: 6rem;
+    left: 1rem;
+    right: 1rem;
+    align-items: center;
+  }
+
+  .toast {
+    width: 100%;
+    max-width: 400px;
+  }
 }
 
 /* --- Notepad & History Drawer Additions --- */
