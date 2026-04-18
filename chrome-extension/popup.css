@@ -58,10 +58,11 @@ body {
 }
 
 .logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--accent-glow);
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: contain;
+  box-shadow: 0 4px 12px var(--accent-glow);
 }
 
 h1 {
