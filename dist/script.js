@@ -904,7 +904,7 @@ window.showDashboard = function(e) {
   if (e) e.preventDefault();
   document.getElementById('view-dashboard').classList.remove('hidden');
   document.getElementById('all-tools').classList.add('hidden');
-  document.getElementById('page-title').textContent = "Bharath's tool bar";
+  document.getElementById('page-title').textContent = "Nexus-571";
   window.currentToolId = null;
   
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
