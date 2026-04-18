@@ -437,6 +437,8 @@ window.showDashboard = function(e) {
   document.getElementById('all-tools').classList.add('hidden');
   document.getElementById('page-title').textContent = "Bharath's tool bar";
   document.getElementById('btnGlobalHistory').classList.add('hidden');
+  const fab = document.getElementById('btnHistoryFAB');
+  if (fab) fab.classList.add('hidden');
   window.currentToolId = null;
   
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -457,8 +459,12 @@ window.showTool = function(toolId) {
   
   if (toolId !== 'tile-notepad') {
     document.getElementById('btnGlobalHistory').classList.remove('hidden');
+    const fab = document.getElementById('btnHistoryFAB');
+    if (fab) fab.classList.remove('hidden');
   } else {
     document.getElementById('btnGlobalHistory').classList.add('hidden');
+    const fab = document.getElementById('btnHistoryFAB');
+    if (fab) fab.classList.add('hidden');
   }
   
   document.querySelectorAll('.nav-item').forEach(el => {

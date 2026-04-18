@@ -562,6 +562,32 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
   transform: scale(1.1) rotate(5deg);
 }
 
+#btnHistoryFAB {
+  position: fixed;
+  bottom: 7rem;
+  right: 2.2rem;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  color: var(--accent-base);
+  border: 1px solid var(--accent-base);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+  margin: 0;
+  padding: 0;
+}
+
+#btnHistoryFAB:hover {
+  transform: scale(1.1) rotate(-15deg);
+  background: var(--card-bg-hover);
+}
+
 .btn-history-tool {
   background: transparent;
   color: var(--accent-base);
