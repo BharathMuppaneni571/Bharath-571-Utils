@@ -2396,4 +2396,35 @@ window.showToast = function(message, type = 'info') {
     setTimeout(() => toast.remove(), 300);
   }, 2800);
 };
+
+/* ============================================================================
+   Global Tooltip for Sidebar Escape Effect
+============================================================================ */
+document.addEventListener('mouseover', (e) => {
+  const item = e.target.closest('.nav-item[data-tooltip]');
+  const sidebar = document.getElementById('sidebar');
+  const globalTooltip = document.getElementById('global-tooltip');
+  if (item && sidebar && sidebar.classList.contains('collapsed') && globalTooltip) {
+    const rect = item.getBoundingClientRect();
+    globalTooltip.textContent = item.dataset.tooltip;
+    globalTooltip.style.display = 'block';
+    globalTooltip.style.top = `${rect.top + (rect.height / 2)}px`;
+    globalTooltip.style.transform = 'translateY(-50%)';
+    globalTooltip.style.left = `${rect.right + 10}px`;
+    globalTooltip.style.opacity = '1';
+  }
+});
+
+document.addEventListener('mouseout', (e) => {
+  const item = e.target.closest('.nav-item[data-tooltip]');
+  const globalTooltip = document.getElementById('global-tooltip');
+  if (item && globalTooltip) {
+    globalTooltip.style.opacity = '0';
+    setTimeout(() => {
+      if (globalTooltip.style.opacity === '0') {
+        globalTooltip.style.display = 'none';
+      }
+    }, 200);
+  }
+});
 
