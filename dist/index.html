@@ -149,14 +149,13 @@
     <main class="main-content">
       <div id="mobile-backdrop" class="mobile-backdrop" onclick="toggleSidebar()"></div>
       <header class="top-nav" style="justify-content: space-between;">
-        <div style="display:flex; align-items:center; gap: 1rem; overflow:hidden;">
+        <div style="display:flex; align-items:center; gap: 1rem; flex: 1; min-width: 0;">
           <button id="btnMobileToggle" class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
           <img src="fav.ico" alt="Bharath"
-            style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm);">
-          <h1 id="page-title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Bharath's Quick apps
-          </h1>
+            style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); flex-shrink: 0;">
+          <h1 id="page-title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width: 0; flex-shrink: 1;">Bharath's Quick apps</h1>
           <button id="btnGlobalHistory" class="btn-history-tool hidden"
-            onclick="window.openHistoryDrawer(window.currentToolId)" style="margin-left:1rem; flex-shrink:0;">
+            onclick="window.openHistoryDrawer(window.currentToolId)" style="margin-left:auto; flex-shrink:0; max-height: 36px;">
             <span class="material-symbols-outlined">history</span> Tool History
           </button>
         </div>
