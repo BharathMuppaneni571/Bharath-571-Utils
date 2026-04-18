@@ -44,13 +44,16 @@
 <body>
   <!-- Authentication Overlay -->
   <div id="auth-overlay" class="hidden">
-    <div class="auth-card">
+    <!-- Animated star field background -->
+    <div id="auth-stars"></div>
+
+    <div class="auth-card" id="auth-card">
       <button class="auth-close-btn" onclick="closeAuthModal()" title="Close Modal"><span
           class="material-symbols-outlined">close</span></button>
       <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:0.5rem;">
-        <img src="fav.ico" alt="Bharath" style="width:36px; height:36px; border-radius:50%;">
+        <img src="fav.ico" alt="Bharath" style="width:40px; height:40px; border-radius:50%; box-shadow: 0 0 0 3px rgba(45,212,191,0.2);">
       </div>
-      <h2 style="margin: 0.2rem 0; font-size: 1.6rem;">Welcome Back</h2>
+      <h2 style="margin: 0.2rem 0; font-size: 1.6rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Welcome Back</h2>
       <p class="auth-subtitle" style="margin-bottom: 1rem;">Sign in to access your private utilities</p>
 
       <div class="auth-tabs">
@@ -67,7 +70,7 @@
           <label for="login-pass">Password</label>
           <input type="password" id="login-pass" class="auth-input" placeholder="••••••••" onkeydown="if(event.key === 'Enter') handleAuth('login')">
         </div>
-        <button class="auth-submit-btn" onclick="handleAuth('login')">Sign In</button>
+        <button class="auth-submit-btn" id="auth-sign-in-btn" onclick="handleAuth('login')">Sign In</button>
       </div>
 
       <div id="register-form" class="auth-form" style="display:none;">

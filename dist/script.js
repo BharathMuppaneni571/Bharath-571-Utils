@@ -33,9 +33,13 @@ window.handleAuth = async function(type) {
   const username = document.getElementById(type === 'login' ? 'login-user' : 'reg-user').value;
   const password = document.getElementById(type === 'login' ? 'login-pass' : 'reg-pass').value;
   if (type === 'register' && password !== document.getElementById('reg-pass-confirm').value) {
+    triggerWrongPasswordAnimation();
     return showToast('Passwords do not match', 'error');
   }
-  if (!username || !password) return showToast('Username and password required', 'error');
+  if (!username || !password) {
+    triggerWrongPasswordAnimation();
+    return showToast('Username and password required', 'error');
+  }
   try {
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -46,10 +50,150 @@ window.handleAuth = async function(type) {
     if (res.ok) {
       localStorage.setItem(AUTH_TOKEN_KEY, data.token);
       localStorage.setItem(AUTH_USER_KEY, data.username);
-      location.reload();
-    } else showToast(data.error || 'Auth failed', 'error');
-  } catch (err) { showToast('Connection error', 'error'); }
+      // 🌀 SUCCESS: Black hole suck-in animation then reload
+      triggerBlackHoleAnimation(() => location.reload());
+    } else {
+      // 💥 FAILURE: Bomb explosion animation
+      triggerWrongPasswordAnimation();
+      showToast(data.error || 'Auth failed', 'error');
+    }
+  } catch (err) {
+    triggerWrongPasswordAnimation();
+    showToast('Connection error', 'error');
+  }
 };
+
+/* ====================================================
+   💥 WRONG PASSWORD – Bomb / Explosion Animation
+   ==================================================== */
+function triggerWrongPasswordAnimation() {
+  const card = document.getElementById('auth-card');
+  if (!card) return;
+
+  // 1) Shake + flash the card
+  card.classList.remove('shake');
+  void card.offsetWidth; // force reflow
+  card.classList.add('shake');
+  card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
+
+  // 2) Red blast overlay flicker
+  const blast = document.createElement('div');
+  blast.className = 'auth-blast-overlay';
+  document.body.appendChild(blast);
+  setTimeout(() => blast.remove(), 500);
+
+  // 3) Bomb emoji bursts from center of card
+  const rect = card.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  const bomb = document.createElement('div');
+  bomb.className = 'bomb-emoji';
+  bomb.textContent = '💣';
+  bomb.style.left = (cx - 20) + 'px';
+  bomb.style.top  = (cy - 20) + 'px';
+  document.body.appendChild(bomb);
+  setTimeout(() => bomb.remove(), 900);
+
+  // 4) Explosion particles spray from card
+  const colors = ['#ef4444','#f97316','#fbbf24','#f87171','#fb923c','#fcd34d','#ff6b6b'];
+  const count = 28;
+  setTimeout(() => {
+    for (let i = 0; i < count; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'explosion-particle';
+      const angle = (Math.PI * 2 / count) * i + (Math.random() * 0.3);
+      const speed = 80 + Math.random() * 160;
+      const tx = Math.cos(angle) * speed;
+      const ty = Math.sin(angle) * speed;
+      const size = 4 + Math.random() * 10;
+      const dur  = 0.5 + Math.random() * 0.5;
+      particle.style.cssText = `
+        left: ${cx - size/2}px;
+        top:  ${cy - size/2}px;
+        width: ${size}px;
+        height: ${size}px;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        --tx: ${tx}px;
+        --ty: ${ty}px;
+        --dur: ${dur}s;
+        border-radius: ${Math.random() > 0.4 ? '50%' : '2px'};
+        box-shadow: 0 0 6px currentColor;
+      `;
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), dur * 1000 + 100);
+    }
+
+    // 5) Spark emojis
+    const sparks = ['✨','💥','⚡','🔥'];
+    for (let i = 0; i < 6; i++) {
+      const spark = document.createElement('div');
+      spark.className = 'bomb-emoji';
+      spark.textContent = sparks[Math.floor(Math.random() * sparks.length)];
+      const sAngle = Math.random() * Math.PI * 2;
+      const sDist = 40 + Math.random() * 80;
+      spark.style.left = (cx + Math.cos(sAngle) * sDist - 14) + 'px';
+      spark.style.top  = (cy + Math.sin(sAngle) * sDist - 14) + 'px';
+      spark.style.fontSize = '1.2rem';
+      spark.style.animationDuration = (0.4 + Math.random() * 0.4) + 's';
+      document.body.appendChild(spark);
+      setTimeout(() => spark.remove(), 900);
+    }
+  }, 150); // slight delay so bomb appears first
+}
+
+/* ====================================================
+   🌀 SUCCESSFUL LOGIN – Black Hole / Suck-In Animation
+   ==================================================== */
+function triggerBlackHoleAnimation(callback) {
+  const card    = document.getElementById('auth-card');
+  const overlay = document.getElementById('auth-overlay');
+  if (!card || !overlay) { callback(); return; }
+
+  // 1) Vortex background shift
+  overlay.classList.add('vortex-bg');
+
+  // 2) Expanding gravitational rings from center
+  const ringsContainer = document.createElement('div');
+  ringsContainer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:99997;';
+  for (let i = 0; i < 3; i++) {
+    const ring = document.createElement('div');
+    ring.className = 'black-hole-ring';
+    ringsContainer.appendChild(ring);
+  }
+  document.body.appendChild(ringsContainer);
+
+  // 3) Light rays sucking toward center
+  const rayCount = 12;
+  for (let i = 0; i < rayCount; i++) {
+    const ray = document.createElement('div');
+    ray.className = 'suck-ray';
+    const angle = (360 / rayCount) * i;
+    const dist  = 120 + Math.random() * 200;
+    const rad   = angle * Math.PI / 180;
+    const bx    = window.innerWidth  / 2 + Math.cos(rad) * dist;
+    const by    = window.innerHeight / 2 + Math.sin(rad) * dist;
+    const height = 150 + Math.random() * 100;
+    ray.style.cssText = `
+      left: ${bx}px;
+      top:  ${by - height}px;
+      height: ${height}px;
+      transform: rotate(${angle + 90}deg);
+      animation-delay: ${Math.random() * 0.3}s;
+    `;
+    document.body.appendChild(ray);
+    setTimeout(() => ray.remove(), 1500);
+  }
+
+  // 4) Card spins and collapses into the black hole center
+  card.classList.add('sucking');
+
+  // 5) After animation completes, run callback
+  setTimeout(() => {
+    ringsContainer.remove();
+    callback();
+  }, 1200);
+}
 
 window.handleLogout = function() {
   localStorage.removeItem(AUTH_TOKEN_KEY);
@@ -171,10 +315,45 @@ window.toggleTheme = function() {
 // Initial check before DOMContentLoaded if possible, or just ensure it runs first
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
+    initAuthOverlay();
     checkAuthState();
   });
 } else {
+  initAuthOverlay();
   checkAuthState();
+}
+
+/* ====================================================
+   ⭐ Auth Overlay Initialisation (stars + reveal)
+   ==================================================== */
+function initAuthOverlay() {
+  // Generate star field
+  const starsEl = document.getElementById('auth-stars');
+  if (starsEl) {
+    const starCount = 80;
+    for (let i = 0; i < starCount; i++) {
+      const star = document.createElement('div');
+      star.className = 'auth-star';
+      const size = 1 + Math.random() * 2;
+      star.style.cssText = `
+        left: ${Math.random() * 100}%;
+        top:  ${Math.random() * 100}%;
+        width: ${size}px;
+        height: ${size}px;
+        --dur: ${2 + Math.random() * 4}s;
+        --delay: ${Math.random() * 4}s;
+        --op: ${0.2 + Math.random() * 0.7};
+      `;
+      starsEl.appendChild(star);
+    }
+  }
+
+  // Give the app-container a reveal class after token-based login
+  const appContainer = document.querySelector('.app-container');
+  if (appContainer && localStorage.getItem(AUTH_TOKEN_KEY)) {
+    appContainer.classList.add('page-reveal');
+    setTimeout(() => appContainer.classList.remove('page-reveal'), 700);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
