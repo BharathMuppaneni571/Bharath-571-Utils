@@ -246,6 +246,39 @@ h1 {
 .tool-name {
   font-size: 0.95rem;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tool-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-item.cloud-item {
+  border-color: rgba(99, 102, 241, 0.2);
+  background: rgba(99, 102, 241, 0.03);
+}
+
+.tool-item.cloud-item:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: #818cf8;
+}
+
+.tool-item.cloud-item .tool-icon {
+  color: #818cf8;
+}
+
+.tool-type-tag {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-top: 1px;
 }
 
 .icon-btn {

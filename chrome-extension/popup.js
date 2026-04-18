@@ -4,6 +4,32 @@ const API_BASE_URL = 'https://bharath-571-utils.muppanenibharath571.workers.dev'
 const AUTH_TOKEN_KEY = 'bharath_utils_auth_token';
 const AUTH_USER_KEY = 'bharath_utils_username';
 
+// 🛡️ Robust Auth Utility for Popup (Handles Sync with Chrome Storage)
+async function getAuthToken() {
+  const data = await chrome.storage.local.get([AUTH_TOKEN_KEY]);
+  return data[AUTH_TOKEN_KEY];
+}
+
+async function authenticatedFetch(url, options = {}) {
+  const token = await getAuthToken();
+  const headers = options.headers || {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  
+  const absoluteUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+  const response = await fetch(absoluteUrl, { ...options, headers });
+  return response;
+}
+
+// 🌐 Unified Search Engine for Cloud Data
+async function searchCloudData(query) {
+  if (!query || query.length < 2) return [];
+  try {
+    const res = await authenticatedFetch(`/api/search?q=${encodeURIComponent(query)}&mode=insensitive`);
+    if (res.ok) return await res.json();
+  } catch (err) { console.warn("Cloud Search Error:", err); }
+  return [];
+}
+
 // ------------- TOOL DEFINITIONS -------------
 const TOOLS = [
   { id: 'tile-notepad', name: 'Notepad & Scratchpad', icon: 'edit_note' },
@@ -185,23 +211,52 @@ function showView(view) {
   }
 }
 
-function renderTools(filter = '') {
+async function renderTools(filter = '', cloudData = []) {
   toolListEl.innerHTML = '';
-  const filtered = TOOLS.filter(t => t.name.toLowerCase().includes(filter.toLowerCase()));
   
-  filtered.forEach(tool => {
+  // 1. Filter Local Tools
+  const localFiltered = TOOLS.filter(t => t.name.toLowerCase().includes(filter.toLowerCase()));
+  
+  // 2. Combine results (Local first, then Cloud)
+  const allResults = [
+    ...localFiltered.map(t => ({ id: t.id, name: t.name, icon: t.icon, type: 'tool' })),
+    ...cloudData.map(c => ({ id: c.id, name: c.title || c.type, icon: 'cloud', type: c.type, payload: c.payload }))
+  ];
+
+  if (allResults.length === 0 && filter) {
+    toolListEl.innerHTML = '<p class="status-info">No tools or saved data found.</p>';
+    return;
+  }
+
+  allResults.forEach(item => {
     const div = document.createElement('div');
-    div.className = 'tool-item';
+    div.className = `tool-item ${item.type !== 'tool' ? 'cloud-item' : ''}`;
+    
+    let iconName = item.icon;
+    if (item.type === 'note') iconName = 'description';
+    else if (item.type === 'history') iconName = 'history';
+
     div.innerHTML = `
-      <span class="material-symbols-outlined tool-icon">${tool.icon}</span>
-      <span class="tool-name">${tool.name}</span>
+      <span class="material-symbols-outlined tool-icon">${iconName}</span>
+      <div class="tool-info">
+        <span class="tool-name">${item.name}</span>
+        ${item.type !== 'tool' ? `<span class="tool-type-tag">${item.type}</span>` : ''}
+      </div>
     `;
+
     div.onclick = () => {
-      if (INLINE_TOOLS.includes(tool.id)) {
-        runToolInline(tool);
-      } else {
-        // ALWAYS open the root URL instead of deep links (user request)
-        chrome.tabs.create({ url: `https://bharath-571-utils.muppanenibharath571.workers.dev/` });
+      if (item.type === 'tool') {
+        if (INLINE_TOOLS.includes(item.id)) runToolInline(item);
+        else chrome.tabs.create({ url: `https://bharath-571-utils.muppanenibharath571.workers.dev/` });
+      } else if (item.type === 'note') {
+        runToolInline(TOOLS.find(t => t.id === 'tile-notepad'));
+        setTimeout(() => { 
+          // Inject Note logic will handle loading by currentNoteId
+          window.currentNoteId = item.id;
+        }, 50);
+      } else if (item.type === 'history' && item.payload) {
+          // Open the specific tool on the website for history restoration
+          chrome.tabs.create({ url: `https://bharath-571-utils.muppanenibharath571.workers.dev/` });
       }
     };
     toolListEl.appendChild(div);
@@ -290,18 +345,19 @@ async function initNotepadTool() {
   
   const area = document.getElementById('note-area');
   const status = document.getElementById('note-status');
-  const data = await chrome.storage.local.get([AUTH_TOKEN_KEY]);
-  const token = data[AUTH_TOKEN_KEY];
 
-  // Fetch latest note
+  // Fetch note (specific ID if requested via search, otherwise latest)
   try {
-    const response = await fetch(`${API_BASE_URL}/api/notes`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const notes = await response.json();
-    if (notes && notes.length > 0) {
-      area.value = notes[0].content;
-      window.currentNoteId = notes[0].id; // store for save
+    const url = window.currentNoteId ? `/api/notes/${window.currentNoteId}` : `/api/notes`;
+    const response = await authenticatedFetch(url);
+    const data = await response.json();
+    
+    // API returns array for list, object for single. Handle both.
+    const note = Array.isArray(data) ? data[0] : data;
+    
+    if (note && note.content !== undefined) {
+      area.value = note.content;
+      window.currentNoteId = note.id; 
       status.textContent = 'Synced with Cloud';
     } else {
       status.textContent = 'New Note';
@@ -315,12 +371,9 @@ async function initNotepadTool() {
     clearTimeout(timeout);
     timeout = setTimeout(async () => {
       try {
-        await fetch(`${API_BASE_URL}/api/notes`, {
+        await authenticatedFetch(`/api/notes`, {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             id: window.currentNoteId || 'ExtensionNote', 
             content: area.value, 
@@ -444,7 +497,22 @@ backBtn.addEventListener('click', () => {
   showView('tools');
 });
 logoutBtn.addEventListener('click', handleLogout);
-toolSearchInput.addEventListener('input', (e) => renderTools(e.target.value));
+let searchTimeout = null;
+toolSearchInput.addEventListener('input', (e) => {
+  const term = e.target.value.trim();
+  
+  // Instant local filtering
+  renderTools(term);
+
+  // Debounced cloud search
+  clearTimeout(searchTimeout);
+  if (term.length >= 2) {
+    searchTimeout = setTimeout(async () => {
+      const cloudData = await searchCloudData(term);
+      renderTools(term, cloudData);
+    }, 400);
+  }
+});
 
 document.getElementById('btn-copy-result').onclick = copyResult;
 document.getElementById('btn-show-history').onclick = toggleHistory;
