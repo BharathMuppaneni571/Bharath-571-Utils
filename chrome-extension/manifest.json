@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "BH571 quick units",
+  "short_name": "BH571 Units",
+  "version": "1.1.0",
+  "description": "Your fastest utility dashboard for quick data units and tools.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "fav.ico"
+  },
+  "icons": {
+    "16": "fav.ico",
+    "48": "fav.ico",
+    "128": "fav.ico"
+  },
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*/*"
+  ]
+}

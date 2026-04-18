@@ -1,0 +1,1306 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Bharath's Utils</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="fav.ico" type="image/x-icon">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+  <!-- 3rd‑party libraries (kept from the original version) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql-formatter/4.0.2/sql-formatter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <!-- HTML & CSS beautifiers -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-html.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-css.min.js"></script>
+  <!-- Extended Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/x2js/1.2.0/xml2json.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsonpath/1.1.1/jsonpath.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+  <!-- New Feature Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cronstrue/2.27.0/cronstrue.min.js"></script>
+  <!-- CodeMirror -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-ocean.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/xml/xml.min.js"></script>
+  <!-- Quill Rich Text -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+</head>
+
+<body>
+  <!-- Authentication Overlay -->
+  <div id="auth-overlay" class="hidden">
+    <!-- Animated star field background -->
+    <div id="auth-stars"></div>
+
+    <div class="auth-card" id="auth-card">
+      <button class="auth-close-btn" onclick="closeAuthModal()" title="Close Modal"><span
+          class="material-symbols-outlined">close</span></button>
+      <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:0.5rem;">
+        <img src="fav.ico" alt="Bharath" style="width:40px; height:40px; border-radius:50%; box-shadow: 0 0 0 3px rgba(45,212,191,0.2);">
+      </div>
+      <h2 style="margin: 0.2rem 0; font-size: 1.6rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Welcome Back</h2>
+      <p class="auth-subtitle" style="margin-bottom: 1rem;">Sign in to access your private utilities</p>
+
+      <div class="auth-tabs">
+        <div id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+        <div id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Register</div>
+      </div>
+
+      <div id="login-form" class="auth-form">
+        <div class="auth-field">
+          <label for="login-user">Username</label>
+          <input type="text" id="login-user" class="auth-input" placeholder="Enter your username" onkeydown="if(event.key === 'Enter') handleAuth('login')">
+        </div>
+        <div class="auth-field">
+          <label for="login-pass">Password</label>
+          <input type="password" id="login-pass" class="auth-input" placeholder="••••••••" onkeydown="if(event.key === 'Enter') handleAuth('login')">
+        </div>
+        <button class="auth-submit-btn" id="auth-sign-in-btn" onclick="handleAuth('login')">Sign In</button>
+      </div>
+
+      <div id="register-form" class="auth-form" style="display:none;">
+        <div class="auth-field">
+          <label for="reg-user">Username</label>
+          <input type="text" id="reg-user" class="auth-input" placeholder="Choose a username" onkeydown="if(event.key === 'Enter') handleAuth('register')">
+        </div>
+        <div class="auth-field">
+          <label for="reg-pass">Password</label>
+          <input type="password" id="reg-pass" class="auth-input" placeholder="Create a password" onkeydown="if(event.key === 'Enter') handleAuth('register')">
+        </div>
+        <div class="auth-field">
+          <label for="reg-pass-confirm">Confirm Password</label>
+          <input type="password" id="reg-pass-confirm" class="auth-input" placeholder="Repeat password" onkeydown="if(event.key === 'Enter') handleAuth('register')">
+        </div>
+        <button class="auth-submit-btn" onclick="handleAuth('register')">Create Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Tooltip for Sidebar -->
+  <div id="global-tooltip" style="display:none; position:fixed; z-index:99999; background: var(--card-bg-hover); color: var(--text-main); padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid var(--accent-base); box-shadow: var(--shadow-sm); font-size: 0.85rem; font-weight: 500; pointer-events: none; transition: opacity 0.2s; white-space: nowrap;"></div>
+
+  <!-- Profile Overlay -->
+  <div id="profile-overlay" class="hidden">
+    <div class="auth-card">
+      <button class="auth-close-btn" onclick="closeProfileModal()" title="Close Modal"><span class="material-symbols-outlined">close</span></button>
+      <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:0.5rem;">
+        <span class="material-symbols-outlined" style="font-size:36px; padding:6px; background:var(--card-border); border-radius:50%; color:var(--accent-base);">account_circle</span>
+      </div>
+      <h2 style="margin: 0.2rem 0; font-size: 1.6rem;">User Profile</h2>
+      <p class="auth-subtitle" style="margin-bottom: 1rem;">View details and update password</p>
+
+      <div id="profile-form" class="auth-form">
+        <div class="auth-field">
+          <label>Username</label>
+          <input type="text" id="profile-username" class="auth-input" readonly disabled style="opacity: 0.7; cursor: not-allowed;">
+        </div>
+        <div class="auth-field">
+          <label for="profile-old-pass">Current Password</label>
+          <input type="password" id="profile-old-pass" class="auth-input" placeholder="Enter current password">
+        </div>
+        <div class="auth-field">
+          <label for="profile-new-pass">New Password</label>
+          <input type="password" id="profile-new-pass" class="auth-input" placeholder="Enter new password">
+        </div>
+        <div class="auth-field">
+          <label for="profile-confirm-pass">Confirm New Password</label>
+          <input type="password" id="profile-confirm-pass" class="auth-input" placeholder="Confirm new password">
+        </div>
+        <button class="auth-submit-btn" onclick="handleUpdatePassword()">Update Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode Picker Overlay -->
+  <div id="mode-picker-overlay" class="hidden">
+    <div class="mode-picker-card">
+      <button class="mode-picker-close" onclick="closeModeSelector()" title="Close">
+        <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+      </button>
+      <p class="mode-picker-title">Choose Your Mode</p>
+      <p class="mode-picker-subtitle">Pick a theme that matches your vibe ✨</p>
+      <div class="mode-grid">
+        <button class="mode-card m-dark" onclick="applyMode('dark')" id="mode-btn-dark">
+          <span class="mode-card-emoji">🌌</span>
+          <p class="mode-card-name">Default Dark</p>
+          <p class="mode-card-desc">Deep space, teal accents</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+        <button class="mode-card m-light" onclick="applyMode('light')" id="mode-btn-light">
+          <span class="mode-card-emoji">☀️</span>
+          <p class="mode-card-name">Light</p>
+          <p class="mode-card-desc">Clean & minimal</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+        <button class="mode-card m-naruto" onclick="applyMode('naruto')" id="mode-btn-naruto">
+          <span class="mode-card-emoji">🍥</span>
+          <p class="mode-card-name">Naruto</p>
+          <p class="mode-card-desc">Orange flames, Hidden Leaf</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+        <button class="mode-card m-pokemon" onclick="applyMode('pokemon')" id="mode-btn-pokemon">
+          <span class="mode-card-emoji">⚡</span>
+          <p class="mode-card-name">Pokémon</p>
+          <p class="mode-card-desc">Bold blue, Pokéball gold</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+        <button class="mode-card m-cyberpunk" onclick="applyMode('cyberpunk')" id="mode-btn-cyberpunk">
+          <span class="mode-card-emoji">🤖</span>
+          <p class="mode-card-name">Cyberpunk</p>
+          <p class="mode-card-desc">Neon cyan, deep void</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+        <button class="mode-card m-rickmorty" onclick="applyMode('rickmorty')" id="mode-btn-rickmorty">
+          <span class="mode-card-emoji">🌀</span>
+          <p class="mode-card-name">Rick & Morty</p>
+          <p class="mode-card-desc">Portals, matrix rain</p>
+          <span class="mode-card-badge">Active</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header"
+        style="display:flex; justify-content:space-between; align-items:center; padding-left:1.5rem; padding-right:1.5rem;">
+        <div style="display:flex; align-items:center; gap: 0.5rem; overflow:hidden;" class="branding-header">
+          <img src="fav.ico" alt="Bharath" style="width:28px; height:28px; border-radius:50%; min-width:28px;">
+          <h2 id="sidebar-title" style="font-size:1.1rem; white-space:nowrap;">Bharath's Quick apps</h2>
+        </div>
+        <button id="btnToggleSidebar"
+          style="width:auto; margin:0; padding:0; background:transparent; font-size:1.4rem; box-shadow:none; color:var(--text-main);"
+          onclick="toggleSidebar()">☰</button>
+      </div>
+      <nav id="sidebar-nav">
+        <a href="#" class="nav-item active" onclick="showDashboard(event)" data-tooltip="Dashboard">
+          <span class="nav-icon material-symbols-outlined">home</span> <span class="nav-text">Dashboard</span>
+        </a>
+        <div class="nav-separator">Tools</div>
+        <!-- Tool links injected here by JS -->
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div id="mobile-backdrop" class="mobile-backdrop" onclick="toggleSidebar()"></div>
+      <header class="top-nav" style="justify-content: space-between;">
+        <div style="display:flex; align-items:center; gap: 1rem; flex: 1; min-width: 0;">
+          <button id="btnMobileToggle" class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+          <img src="fav.ico" alt="Bharath"
+            style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm); flex-shrink: 0;">
+          <h1 id="page-title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width: 0; flex-shrink: 1;">Bharath's Quick apps</h1>
+        </div>
+        <div style="display:flex; align-items:center; gap: 1.5rem;">
+          <div class="search-container" id="searchBox">
+            <div class="search-input-row">
+              <span class="material-symbols-outlined"
+                style="font-size:18px;color:var(--text-muted);flex-shrink:0;">search</span>
+              <input type="text" id="toolSearch" placeholder="Search tools or saved data..." autocomplete="off">
+              <div class="search-mode-row">
+                <label class="search-mode-pill active"><input type="radio" name="searchMode" value="insensitive"
+                    checked>Aa</label>
+                <label class="search-mode-pill"><input type="radio" name="searchMode" value="sensitive">Aa!</label>
+                <label class="search-mode-pill"><input type="radio" name="searchMode"
+                    value="exact">&ldquo;&hellip;&rdquo;</label>
+                <label class="search-mode-pill"><input type="radio" name="searchMode" value="regex">.*</label>
+              </div>
+            </div>
+            <div id="searchDropdown" class="search-dropdown"></div>
+          </div>
+
+          <div id="top-auth-container"
+            style="display:flex; align-items:center; padding-left:1.5rem; border-left:1px solid rgba(255,255,255,0.1);">
+            <button id="top-login-btn" class="auth-submit-btn"
+              style="margin:0; padding:0.6rem 1.2rem; font-size: 0.9rem;" onclick="openAuthModal()">Sign In</button>
+            <div class="sidebar-user-section" id="user-section"
+              style="display:none; margin:0; padding:0; border:none; gap: 0.5rem; position: relative;">
+              <div class="user-avatar" id="user-initial" onclick="toggleProfilePopover()" style="cursor: pointer;">B</div>
+              
+              <!-- Popover Menu -->
+              <div id="profile-popover" class="hidden" style="position: absolute; top: calc(100% + 10px); right: 0; background: var(--bg-sidebar); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 0.5rem; box-shadow: var(--shadow-lg); flex-direction: column; gap: 0.5rem; min-width: 180px; z-index: 100;">
+                <button class="note-action-btn" onclick="openProfileModal()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
+                  Profile <span class="material-symbols-outlined" style="font-size:18px;">account_circle</span>
+                </button>
+                <button class="note-action-btn" onclick="openModeSelector()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
+                  Mode <span id="mode-icon" class="material-symbols-outlined" style="font-size:18px;">palette</span>
+                </button>
+                <button class="note-action-btn danger" onclick="handleLogout()" style="width: 100%; justify-content: space-between; padding: 0.6rem;">
+                  Logout <span class="material-symbols-outlined" style="font-size:18px;">power_settings_new</span>
+                </button>
+              </div>
+
+              <div class="user-info" style="display:none;">
+                <div class="user-name" id="display-username">Bharath</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div id="view-dashboard" class="dashboard-grid">
+        <!-- Dashboard cards injected here by JS -->
+      </div>
+
+      <div id="all-tools" class="hidden">
+        <!-- Notepad (CRUD) - Enhanced -->
+        <div class="tile double-tile" id="tile-notepad">
+          <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <h2 style="display:block; margin:0;">Notepad</h2>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+              <button class="note-action-btn" id="btnNotepadDuplicate" title="Duplicate current note">
+                <span class="material-symbols-outlined" style="font-size:15px;">content_copy</span> Duplicate
+              </button>
+              <button class="note-action-btn" id="btnNotepadExportHtml" title="Export as HTML">
+                <span class="material-symbols-outlined" style="font-size:15px;">download</span> Export
+              </button>
+              <button class="note-action-btn" id="btnNotepadRename" title="Rename note">
+                <span class="material-symbols-outlined" style="font-size:15px;">edit</span> Rename
+              </button>
+              <button class="note-action-btn danger" id="btnNotepadDelete" title="Delete note">
+                <span class="material-symbols-outlined" style="font-size:15px;">delete</span> Delete
+              </button>
+              <button id="btnNotepadSave"
+                style="width:auto; display:inline-flex; align-items:center; gap:0.4rem; margin:0; padding: 0.5rem 1rem; font-size:0.9rem;">
+                <span class="material-symbols-outlined" style="font-size:16px;">save</span> Save
+              </button>
+            </div>
+          </div>
+
+          <div class="notepad-layout">
+            <!-- Notes Sidebar -->
+            <div id="notepadSidebar" class="notepad-sidebar">
+              <button id="btnNotepadNew"
+                style="margin:0 0 0.75rem; padding: 0.5rem; font-size: 0.85rem; display:flex; align-items:center; justify-content:center; gap:0.3rem;">
+                <span class="material-symbols-outlined" style="font-size:16px;">add</span> New Note
+              </button>
+              <input id="notepadSearchInput" placeholder="Search notes..." autocomplete="off" />
+              <!-- Tag filter chips -->
+              <div id="noteTagFilter" class="note-tags-row" style="margin-bottom:0.5rem;"></div>
+              <div id="notepadList" style="display:flex; flex-direction:column; gap:0.4rem; overflow-y:auto; flex:1;">
+              </div>
+            </div>
+
+            <!-- Editor Area -->
+            <div class="notepad-editor">
+              <input type="text" id="noteTitle" placeholder="Note title..." style="margin-bottom: 0.5rem;" />
+              <input type="text" id="noteTags" placeholder="Tags: #work #snippet #todo  (comma or space separated)"
+                style="margin-bottom: 0.5rem; font-size:0.85rem;" />
+              <div id="quillEditor" style="flex:1; background: #fff; color: #000;"></div>
+              <div class="note-wordcount-bar" id="noteWordCount">
+                Words: <span id="wcWords">0</span> &nbsp;&nbsp; Chars: <span id="wcChars">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status bar -->
+          <div id="notepadResult"
+            style="margin-top:0.75rem; font-size:0.82rem; color:var(--text-muted); padding:0.4rem 0;">
+            <div class="result">Ready.</div>
+          </div>
+        </div>
+
+        <!-- URL Encode / Decode -->
+        <div class="tile" id="tile-url">
+          <h2>URL Encode / Decode</h2>
+          <label for="urlInput">URL / File Path</label>
+          <textarea id="urlInput" placeholder="e.g. file:///C:/…/Desktop/formatters.html"></textarea>
+          <button id="btnEncodeURL">Encode → URL</button>
+          <button id="btnDecodeURL">← Decode URL</button>
+          <h3>Result</h3>
+          <div class="output" id="urlResult"><button class="copyBtn"
+              onclick='copyToClipboard("urlResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Base64 (Text) -->
+        <div class="tile" id="tile-b64text">
+          <h2>Base64 (Text)</h2>
+          <label for="strInput">Text / Base64</label>
+          <textarea id="strInput" placeholder="Enter plain text or a Base64 string"></textarea>
+          <button id="btnEncodeString">Encode → Base64</button>
+          <button id="btnDecodeString">← Decode Base64</button>
+          <h3>Result</h3>
+          <div class="output" id="strResult"><button class="copyBtn"
+              onclick='copyToClipboard("strResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Base64 (File) -->
+        <div class="tile" id="tile-b64file">
+          <h2>Base64 (File)</h2>
+          <label for="fileInput">Upload File → Base64</label>
+          <input id="fileInput" type="file">
+          <button id="btnFileToBase64">Convert to Base64</button>
+
+          <label for="fileB64Input">Paste Base64 → Download File</label>
+          <textarea id="fileB64Input" placeholder="Base64 string (with or without data:…;base64,)"></textarea>
+          <input id="downloadFileName" placeholder="File name for download (e.g. myDoc.pdf)">
+          <button id="btnBase64ToFile">Download File</button>
+
+          <h3>Result</h3>
+          <div class="output" id="fileResult"><button class="copyBtn"
+              onclick='copyToClipboard("fileResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Image ↔ Base64 -->
+        <div class="tile" id="tile-image">
+          <h2>Image ↔ Base64</h2>
+          <label for="imgFile">Upload Image → Base64</label>
+          <input id="imgFile" type="file" accept="image/*">
+          <button id="btnImgToBase64">Convert to Base64</button>
+
+          <label for="b64Input">Paste Base64 → Download Image</label>
+          <textarea id="b64Input" placeholder="Base64 string (with or without data:image/...;base64,)"></textarea>
+          <button id="btnBase64ToImg">Download Image</button>
+
+          <h3>Result</h3>
+          <div class="output" id="imgResult"><button class="copyBtn"
+              onclick='copyToClipboard("imgResult")'>Copy</button>
+            <div class="result" id="imgResultText"></div>
+          </div>
+          <img alt="Preview will appear here" id="imgPreview">
+        </div>
+
+        <!-- Code Formatter -->
+        <div class="tile" id="tile-formatter">
+          <h2>Code Formatter</h2>
+          <label for="fmtExt">Choose Language / Extension</label>
+          <select id="fmtExt">
+            <option value="json">.json – JSON</option>
+            <option value="js">.js / .ts – JavaScript / TypeScript</option>
+            <option value="html">.html / .htm – HTML</option>
+            <option value="css">.css – CSS</option>
+            <option value="xml">.xml – XML</option>
+            <option value="sql">.sql – SQL</option>
+            <option value="yaml">.yaml / .yml – YAML</option>
+          </select>
+
+          <label for="fmtInput">Input Code / Data</label>
+          <textarea id="fmtInput" placeholder="Paste code or data here"></textarea>
+          <button id="btnFormatCode">Format</button>
+
+          <h3>Formatted Output</h3>
+          <div class="output" id="fmtResult"><button class="copyBtn"
+              onclick='copyToClipboard("fmtResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- -------------- NEW – PDF tile, now part of the main toolbox -------------- -->
+        <div class="tile double-tile" id="tile-img2pdf">
+          <h2>Combine Images → PDF</h2>
+
+          <!-- 1️⃣ Select images (multiple) -->
+          <label for="pdfImgFiles">Select Images (multiple)</label>
+          <input id="pdfImgFiles" type="file" accept="image/*" multiple>
+
+          <!-- 2️⃣ Thumbnails – drag‑and‑drop to reorder -->
+          <div id="pdfImgList" style="display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0;"></div>
+
+          <!-- 3️⃣ Page size -->
+          <label for="pdfPageSize">Page size</label>
+          <select id="pdfPageSize">
+            <option value="a4">A4 (210 × 297 mm)</option>
+            <option value="letter">Letter (216 × 279 mm)</option>
+            <option value="custom">Custom (mm)</option>
+          </select>
+
+          <!-- 4️⃣ Custom size (shown only when “custom” is selected) -->
+          <div id="pdfCustomSize" style="display:none;margin:.5rem 0;">
+            <label for="pdfCustomWidth">Width (mm)</label>
+            <input id="pdfCustomWidth" type="number" placeholder="e.g. 210">
+            <label for="pdfCustomHeight">Height (mm)</label>
+            <input id="pdfCustomHeight" type="number" placeholder="e.g. 297">
+          </div>
+
+          <!-- 5️⃣ Orientation -->
+          <label for="pdfPortrait">
+            <input id="pdfPortrait" type="checkbox" checked>
+            Portrait orientation (un‑check for Landscape)
+          </label>
+
+          <!-- 6️⃣ Margins -->
+          <p style="margin:.5rem 0;font-size:.9rem;color:#555"><strong>Margins (mm)</strong></p>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <input id="pdfMarginTop" type="number" placeholder="Top" value="10" style="flex:1">
+            <input id="pdfMarginRight" type="number" placeholder="Right" value="10" style="flex:1">
+            <input id="pdfMarginBottom" type="number" placeholder="Bottom" value="10" style="flex:1">
+            <input id="pdfMarginLeft" type="number" placeholder="Left" value="10" style="flex:1">
+          </div>
+
+          <!-- 7️⃣ Scaling mode -->
+          <label for="pdfFitMode">Image scaling mode</label>
+          <select id="pdfFitMode">
+            <option value="fit">Fit (keep aspect‑ratio, whole image visible)</option>
+            <option value="fill">Fill (cover page, may crop)</option>
+            <option value="stretch">Stretch (ignore aspect‑ratio)</option>
+          </select>
+
+          <!-- 8️⃣ Rotation -->
+          <label for="pdfRotate">Rotate each page</label>
+          <select id="pdfRotate">
+            <option value="0">0°</option>
+            <option value="90">90°</option>
+            <option value="180">180°</option>
+            <option value="270">270°</option>
+          </select>
+
+          <!-- 9️⃣ Output Format & JPEG quality -->
+          <label for="pdfOutFormat">Output format</label>
+          <select id="pdfOutFormat">
+            <option value="png">PNG (lossless - larger file)</option>
+            <option value="jpeg">JPEG (lossy - smaller file)</option>
+          </select>
+
+          <label for="pdfQuality">JPEG quality (0.1 – 1, lower = smaller file)</label>
+          <input id="pdfQuality" type="range" min="0.1" max="1" step="0.1" value="0.8">
+
+          <!-- 10️⃣ Header / Footer -->
+          <label for="pdfHeader">Header text (optional)</label>
+          <input id="pdfHeader" type="text" placeholder="e.g. My Report">
+
+          <label for="pdfFooter">Footer text (optional)</label>
+          <input id="pdfFooter" type="text" placeholder="e.g. © 2025 Company">
+
+          <!-- 11️⃣ Page numbers -->
+          <label for="pdfPageNumbers">
+            <input id="pdfPageNumbers" type="checkbox" checked>
+            Add page numbers
+          </label>
+
+          <!-- 12️⃣ Global caption -->
+          <label for="pdfCaption">Caption under each image (optional)</label>
+          <input id="pdfCaption" type="text" placeholder="e.g. Figure – Description">
+
+          <!-- 13️⃣ PDF metadata -->
+          <label for="pdfTitle">PDF title (metadata)</label>
+          <input id="pdfTitle" type="text" placeholder="Document title">
+
+          <label for="pdfAuthor">PDF author (metadata)</label>
+          <input id="pdfAuthor" type="text" placeholder="Your name">
+
+          <!-- 14️⃣ Output file name -->
+          <label for="pdfFileName">Output file name</label>
+          <input id="pdfFileName" type="text" placeholder="combined-images.pdf" value="combined-images.pdf">
+
+          <button id="btnCombinePdf" style="margin-top:1rem;">Generate PDF</button>
+
+          <h3>Result</h3>
+          <div class="output" id="pdfResult">
+            <button class="copyBtn" onclick='copyToClipboard("pdfResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+
+        <!-- QR Code (Generate / Scan) -->
+        <div class="tile" id="tile-qr">
+          <h2>QR Code (Generate / Scan)</h2>
+          <label for="qrText">Text / URL to encode</label>
+          <input id="qrText" placeholder="Enter text or URL">
+          <button id="btnGenerateQR">Generate QR</button>
+          <div class="qrHolder" id="qrHolder"></div>
+
+          <hr>
+          <label for="qrFile">Upload QR image to scan</label>
+          <input id="qrFile" type="file" accept="image/*">
+          <button id="btnScanQR">Scan QR</button>
+
+          <h3>Scanned Result</h3>
+          <div class="output" id="qrResult"><button class="copyBtn" onclick='copyToClipboard("qrResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Hash Calculator -->
+        <div class="tile" id="tile-hash">
+          <h2>Hash Calculator</h2>
+          <label for="hashAlgo">Algorithm</label>
+          <select id="hashAlgo">
+            <option value="SHA-1">SHA‑1</option>
+            <option value="SHA-256">SHA‑256</option>
+            <option value="SHA-384">SHA‑384</option>
+            <option value="SHA-512">SHA‑512</option>
+          </select>
+          <label for="hashInput">Text to hash</label>
+          <textarea id="hashInput" placeholder="Enter text" rows="3"></textarea>
+          <button id="btnCalcHash">Calculate</button>
+
+          <h3>Result</h3>
+          <div class="output" id="hashResult"><button class="copyBtn"
+              onclick='copyToClipboard("hashResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Minifier -->
+        <div class="tile" id="tile-minify">
+          <h2>Minifier</h2>
+          <label for="minifyExt">Language</label>
+          <select id="minifyExt">
+            <option value="json">JSON</option>
+            <option value="js">JavaScript</option>
+            <option value="css">CSS</option>
+            <option value="html">HTML</option>
+          </select>
+          <label for="minifyInput">Code / Data</label>
+          <textarea id="minifyInput" placeholder="Paste code here" rows="4"></textarea>
+          <button id="btnMinify">Minify</button>
+
+          <h3>Minified Output</h3>
+          <div class="output" id="minifyResult"><button class="copyBtn"
+              onclick='copyToClipboard("minifyResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Password Generator -->
+        <div class="tile" id="tile-pwd">
+          <h2>Password Generator</h2>
+          <label for="pwdLength">Length</label>
+          <input id="pwdLength" type="number" value="12" max="64" min="4">
+          <label>Include characters</label>
+          <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+            <label><input id="pwdUpper" type="checkbox" checked> Uppercase</label>
+            <label><input id="pwdLower" type="checkbox" checked> Lowercase</label>
+            <label><input id="pwdNumbers" type="checkbox" checked> Numbers</label>
+            <label><input id="pwdSymbols" type="checkbox"> Symbols</label>
+          </div>
+          <button id="btnGeneratePwd">Generate</button>
+
+          <h3>Result</h3>
+          <div class="output" id="pwdResult"><button class="copyBtn"
+              onclick='copyToClipboard("pwdResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- CSV ↔ JSON -->
+        <div class="tile" id="tile-csvjson">
+          <h2>CSV ↔ JSON</h2>
+          <label for="csvInput">CSV Input</label>
+          <textarea id="csvInput" placeholder="Paste CSV (comma‑separated)" rows="3"></textarea>
+          <button id="btnCsvToJson">CSV → JSON</button>
+
+          <label for="jsonInput">JSON Input</label>
+          <textarea id="jsonInput" placeholder="Paste JSON array" rows="3"></textarea>
+          <button id="btnJsonToCsv">JSON → CSV</button>
+
+          <h3>Result</h3>
+          <div class="output" id="csvjsonResult"><button class="copyBtn"
+              onclick='copyToClipboard("csvjsonResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- URL Shortener / Expander -->
+        <div class="tile" id="tile-urlshort">
+          <h2>URL Shortener / Expander</h2>
+          <label for="longUrl">Long URL</label>
+          <input id="longUrl" placeholder="https://example.com/very/long/path">
+          <button id="btnShortenURL">Shorten (tinyurl)</button>
+
+          <label for="shortUrl">Short URL</label>
+          <input id="shortUrl" placeholder="Enter short URL to expand">
+          <button id="btnExpandURL">Expand (follow redirects)</button>
+
+          <h3>Result</h3>
+          <div class="output" id="urlshortResult"><button class="copyBtn"
+              onclick='copyToClipboard("urlshortResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Image Optimizer (Compress to JPEG) -->
+        <div class="tile" id="tile-imgopt">
+          <h2>Image Optimizer (Compress to JPEG)</h2>
+          <label for="optImgFile">Upload Image</label>
+          <input id="optImgFile" type="file" accept="image/*">
+          <label for="optQuality">Quality (0‑1)</label>
+          <input id="optQuality" type="range" value="0.7" max="1" min="0.1" step="0.1">
+          <button id="btnCompressImage">Compress</button>
+
+          <h3>Result</h3>
+          <div class="output" id="optImgResult"><button class="copyBtn"
+              onclick='copyToClipboard("optImgResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+          <img alt="Optimized preview" id="optImgPreview">
+        </div>
+
+        <!-- File Type Detector -->
+        <div class="tile" id="tile-detect">
+          <h2>File Type Detector</h2>
+          <label for="detectFile">Upload File</label>
+          <input id="detectFile" type="file">
+          <button id="btnDetectFile">Detect</button>
+
+          <h3>Result</h3>
+          <div class="output" id="detectResult"><button class="copyBtn"
+              onclick='copyToClipboard("detectResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Unicode ↔ HTML Entity -->
+        <div class="tile" id="tile-entity">
+          <h2>Unicode ↔ HTML Entity</h2>
+          <label for="entityInput">Text / Entity</label>
+          <textarea id="entityInput" placeholder="Enter text or HTML entity" rows="3"></textarea>
+          <button id="btnEncodeEntity">Encode → Entity</button>
+          <button id="btnDecodeEntity">Decode → Text</button>
+
+          <h3>Result</h3>
+          <div class="output" id="entityResult"><button class="copyBtn"
+              onclick='copyToClipboard("entityResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Bulk Batch Processor (Base64 → ZIP) -->
+        <div class="tile" id="tile-batch">
+          <h2>Bulk Batch Processor (Base64 → ZIP)</h2>
+          <label for="batchFiles">Select Multiple Files</label>
+          <input id="batchFiles" type="file" multiple>
+          <button id="btnBatchToBase64Zip">Encode All to Base64 &amp; Download ZIP</button>
+
+          <h3>Log</h3>
+          <div class="output" id="batchResult"><button class="copyBtn"
+              onclick='copyToClipboard("batchResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Date‑Time Formatter -->
+        <div class="tile" id="tile-datetime">
+          <h2>Date‑Time Formatter</h2>
+          <label for="dtInput">Timestamp / Date string</label>
+          <input id="dtInput" placeholder="e.g. 2024‑08‑30T14:23:00Z or 1693400580000">
+          <button id="btnFormatDateTime">Format</button>
+
+          <h3>Result (ISO | Locale | UTC)</h3>
+          <div class="output" id="dtResult"><button class="copyBtn" onclick='copyToClipboard("dtResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- MIME‑type Lookup -->
+        <div class="tile" id="tile-mime">
+          <h2>MIME‑type Lookup</h2>
+          <label for="mimeInput">Extension or MIME string</label>
+          <input id="mimeInput" placeholder="e.g. .pdf or image/png">
+          <button id="btnLookupMime">Lookup</button>
+
+          <h3>Result</h3>
+          <div class="output" id="mimeResult"><button class="copyBtn"
+              onclick='copyToClipboard("mimeResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Binary ↔ Hex Converter -->
+        <div class="tile" id="tile-hex">
+          <h2>Binary ↔ Hex Converter</h2>
+          <label for="hexFile">Upload File (to Hex)</label>
+          <input id="hexFile" type="file">
+          <button id="btnFileToHex">Convert to Hex</button>
+
+          <label for="hexInput">Hex String (to Binary)</label>
+          <textarea id="hexInput" placeholder="Enter hex string" rows="3"></textarea>
+          <button id="btnHexToFile">Download Binary File</button>
+
+          <h3>Result</h3>
+          <div class="output" id="hexResult"><button class="copyBtn"
+              onclick='copyToClipboard("hexResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Colour Picker & Converter -->
+        <div class="tile" id="tile-colour">
+          <h2>Colour Picker & Converter</h2>
+          <label for="colourInput">Pick a colour</label>
+          <input id="colourInput" type="color" value="#009688">
+          <button id="btnConvertColour">Convert</button>
+
+          <h3>Result (HEX | RGB | HSL)</h3>
+          <div class="output" id="colourResult"><button class="copyBtn"
+              onclick='copyToClipboard("colourResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- QR Batch Export (PDF) -->
+        <div class="tile" id="tile-qrpdf">
+          <h2>QR Batch Export (PDF)</h2>
+          <label for="qrBatchInput">One text per line</label>
+          <textarea id="qrBatchInput" placeholder="Enter each value on a new line" rows="4"></textarea>
+          <button id="btnExportQRBatch">Generate PDF</button>
+
+          <h3>Result</h3>
+          <div class="output" id="qrpdfResult"><button class="copyBtn"
+              onclick='copyToClipboard("qrpdfResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- ==================== NEW TOOLS ==================== -->
+
+        <!-- Text Case Converter -->
+        <div class="tile" id="tile-strconvert">
+          <h2>Text Case Converter</h2>
+          <label for="caseInput">Input Text</label>
+          <textarea id="caseInput" placeholder="Paste your text here..." rows="4"></textarea>
+          <div class="case-btn-grid">
+            <button class="case-btn" onclick="doCase('upper')"><span class="material-symbols-outlined"
+                style="font-size:16px;">text_fields</span>
+              <div>
+                <div>UPPER CASE</div>
+                <div class="case-btn-label">ALL CAPS</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('lower')"><span class="material-symbols-outlined"
+                style="font-size:16px;">text_fields</span>
+              <div>
+                <div>lower case</div>
+                <div class="case-btn-label">all lowercase</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('title')"><span class="material-symbols-outlined"
+                style="font-size:16px;">title</span>
+              <div>
+                <div>Title Case</div>
+                <div class="case-btn-label">First Letter Of Each Word</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('sentence')"><span class="material-symbols-outlined"
+                style="font-size:16px;">short_text</span>
+              <div>
+                <div>Sentence case</div>
+                <div class="case-btn-label">First letter of sentence</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('camel')"><span class="material-symbols-outlined"
+                style="font-size:16px;">code</span>
+              <div>
+                <div>camelCase</div>
+                <div class="case-btn-label">JavaScript variables</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('pascal')"><span class="material-symbols-outlined"
+                style="font-size:16px;">code</span>
+              <div>
+                <div>PascalCase</div>
+                <div class="case-btn-label">Class names</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('snake')"><span class="material-symbols-outlined"
+                style="font-size:16px;">code</span>
+              <div>
+                <div>snake_case</div>
+                <div class="case-btn-label">Python / SQL</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('kebab')"><span class="material-symbols-outlined"
+                style="font-size:16px;">code</span>
+              <div>
+                <div>kebab-case</div>
+                <div class="case-btn-label">CSS / URLs</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('constant')"><span class="material-symbols-outlined"
+                style="font-size:16px;">code</span>
+              <div>
+                <div>CONSTANT_CASE</div>
+                <div class="case-btn-label">Env variables</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('alternating')"><span class="material-symbols-outlined"
+                style="font-size:16px;">swipe</span>
+              <div>
+                <div>aLtErNaTiNg</div>
+                <div class="case-btn-label">mocking case</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('reverse')"><span class="material-symbols-outlined"
+                style="font-size:16px;">swap_horiz</span>
+              <div>
+                <div>Reverse</div>
+                <div class="case-btn-label">txeT esreveR</div>
+              </div>
+            </button>
+            <button class="case-btn" onclick="doCase('trim')"><span class="material-symbols-outlined"
+                style="font-size:16px;">format_clear</span>
+              <div>
+                <div>Trim &amp; Clean</div>
+                <div class="case-btn-label">Remove extra spaces</div>
+              </div>
+            </button>
+          </div>
+          <h3>Result</h3>
+          <div class="output" id="caseResult"><button class="copyBtn"
+              onclick='copyToClipboard("caseResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- ==================== 1️⃣ Crop & Resize Image (new) ==================== -->
+        <div class="tile" id="tile-cropresize">
+          <h2>Crop &amp; Resize Image</h2>
+
+          <!-- ---------- 1️⃣ Source image ---------- -->
+          <label for="cropImgFile">Upload Image</label>
+          <input id="cropImgFile" type="file" accept="image/*">
+
+          <!-- ---------- 2️⃣ Target dimensions ---------- -->
+          <label for="cropWidth">Target Width (px)</label>
+          <input id="cropWidth" type="number" placeholder="e.g. 800">
+
+          <label for="cropHeight">Target Height (px)</label>
+          <input id="cropHeight" type="number" placeholder="e.g. 600">
+
+          <!-- ---------- 3️⃣ Size limits (optional) ---------- -->
+          <p style="margin:.5rem 0;font-size:.9rem;color:#555">
+            <strong>Min / Max size (px)</strong> – leave blank if you don’t need limits.
+          </p>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <input id="cropMinW" type="number" placeholder="Min W" style="flex:1">
+            <input id="cropMinH" type="number" placeholder="Min H" style="flex:1">
+            <input id="cropMaxW" type="number" placeholder="Max W" style="flex:1">
+            <input id="cropMaxH" type="number" placeholder="Max H" style="flex:1">
+          </div>
+
+          <!-- ---------- 4️⃣ Behaviour options ---------- -->
+          <label for="cropLockRatio">
+            <input id="cropLockRatio" type="checkbox" checked>
+            Keep original aspect‑ratio (centre‑crop)
+          </label>
+
+          <label for="cropAllowUpscale">
+            <input id="cropAllowUpscale" type="checkbox">
+            Allow up‑scaling (enlarge smaller images)
+          </label>
+
+          <label for="cropCanvasBg">Canvas background colour</label>
+          <input id="cropCanvasBg" type="color" value="#ffffff">
+
+          <!-- ---------- 5️⃣ Output format ---------- -->
+          <p style="margin:.5rem 0;font-size:.9rem;color:#555">
+            <strong>Output format</strong>
+          </p>
+          <select id="cropOutFormat">
+            <option value="png">PNG (lossless)</option>
+            <option value="jpeg">JPEG (lossy)</option>
+          </select>
+
+          <label for="cropJpegQuality">JPEG quality (0‑1) – only used for JPEG</label>
+          <input id="cropJpegQuality" type="range" min="0.1" max="1" step="0.1" value="0.9">
+
+          <!-- ---------- 6️⃣ Action button ---------- -->
+          <button id="btnCropResize" style="margin-top:1rem">Crop &amp; Resize</button>
+
+          <!-- ---------- 7️⃣ Result area ---------- -->
+          <h3>Result</h3>
+          <div class="output" id="cropResult">
+            <button class="copyBtn" onclick='copyToClipboard("cropResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+          <img alt="Cropped &amp; resized preview" id="cropPreview"
+            style="margin-top:.5rem;max-width:100%;border:1px solid var(--border);border-radius:var(--radius)">
+        </div>
+
+        <!-- ==================== NEW EXTENDED UTILITIES ==================== -->
+
+        <!-- XML ↔ JSON Bi-directional Converter -->
+        <div class="tile" id="tile-xmljson">
+          <h2>XML ↔ JSON Converter</h2>
+          <label for="xmljsonInput">Input (XML or JSON)</label>
+          <textarea id="xmljsonInput" placeholder="Paste XML or JSON payload here" rows="6"></textarea>
+
+          <div style="display:flex; gap:1rem; margin-top:1rem;">
+            <button id="btnXmlToJson">XML → JSON</button>
+            <button id="btnJsonToXml">JSON → XML</button>
+          </div>
+
+          <h3>Output Result</h3>
+          <div class="output" id="xmljsonResult">
+            <button class="copyBtn" onclick='copyToClipboard("xmljsonResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- JSONPath Extractor -->
+        <div class="tile" id="tile-jsonpath">
+          <h2>JSONPath / Query Extractor</h2>
+          <label for="jpDataInput">Source JSON Data</label>
+          <textarea id="jpDataInput" placeholder="Paste large JSON output (e.g. from Appsmith/Flowise)"
+            rows="5"></textarea>
+
+          <label for="jpQuery">JSONPath Expression</label>
+          <input id="jpQuery" type="text" placeholder="e.g. $.nodes[*].data.name">
+
+          <button id="btnExtractJp">Extract Data</button>
+
+          <h3>Extracted Results</h3>
+          <div class="output" id="jpResult">
+            <button class="copyBtn" onclick='copyToClipboard("jpResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- Handlebars Template Binder -->
+        <div class="tile double-tile" id="tile-handlebar">
+          <h2>Template Binding Tester (Handlebars)</h2>
+
+          <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+            <div style="flex:1; min-width:300px;">
+              <label for="hbData">Binding Data (JSON)</label>
+              <textarea id="hbData" placeholder='{"user": {"name": "Alex"}}' rows="6"></textarea>
+            </div>
+            <div style="flex:1; min-width:300px;">
+              <label for="hbTemplate">Template (Text with {{ }})</label>
+              <textarea id="hbTemplate" placeholder="Hello {{user.name}}! Welcome back." rows="6"></textarea>
+            </div>
+          </div>
+
+          <button id="btnBindTemplate">Evaluate & Bind Template</button>
+
+          <h3>Generated Output</h3>
+          <div class="output" id="hbResult">
+            <button class="copyBtn" onclick='copyToClipboard("hbResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- REST API Tester -->
+        <div class="tile double-tile" id="tile-restapi">
+          <h2>REST API Client</h2>
+
+          <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem;">
+            <select id="apiMethod" style="width:120px;">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="DELETE">DELETE</option>
+              <option value="PATCH">PATCH</option>
+            </select>
+            <input id="apiUrl" type="text" placeholder="https://api.example.com/v1/resource"
+              style="flex:1; min-width:300px; margin-top:0.5rem;" />
+          </div>
+
+          <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+            <div style="flex:1; min-width:300px;">
+              <label for="apiHeaders">Headers (JSON)</label>
+              <textarea id="apiHeaders"
+                placeholder='{"Authorization": "Bearer token", "Content-Type": "application/json"}' rows="4"></textarea>
+            </div>
+            <div style="flex:1; min-width:300px;">
+              <label for="apiBody">Request Body (JSON)</label>
+              <textarea id="apiBody" placeholder="Request payload here (for POST/PUT)" rows="4"></textarea>
+            </div>
+          </div>
+
+          <button id="btnSendApi">Send Request</button>
+
+          <h3>Response</h3>
+          <p id="apiMeta" style="font-size:0.9rem; color:var(--text-muted); margin-top:0;"></p>
+          <div class="output" id="apiResult" style="height:350px;">
+            <button class="copyBtn" onclick='copyToClipboard("apiResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+        <!-- Native OData Query Builder -->
+        <!-- existing DOM unchanged internally ... -->
+        <div class="tile double-tile" id="tile-odata">
+          <h2>OData Query Builder</h2>
+
+          <label for="odataBaseUrl">Base API Endpoint</label>
+          <input id="odataBaseUrl" type="text" placeholder="https://services.odata.org/V4/TripPinService/People"
+            style="margin-bottom:1rem;" />
+
+          <div class="grid-auto-responsive">
+            <div>
+              <label for="odataSelect">$select (Properties to include)</label>
+              <input id="odataSelect" type="text" placeholder="UserName, FirstName, LastName" />
+            </div>
+            <div>
+              <label for="odataFilter">$filter (Logical condition)</label>
+              <input id="odataFilter" type="text" placeholder="FirstName eq 'Scott'" />
+            </div>
+            <div>
+              <label for="odataExpand">$expand (Navigation property)</label>
+              <input id="odataExpand" type="text" placeholder="Friends" />
+            </div>
+            <div>
+              <label for="odataOrderby">$orderby</label>
+              <input id="odataOrderby" type="text" placeholder="LastName desc" />
+            </div>
+            <div>
+              <label for="odataTop">$top (Integer)</label>
+              <input id="odataTop" type="number" placeholder="10" />
+            </div>
+            <div>
+              <label for="odataSkip">$skip (Integer)</label>
+              <input id="odataSkip" type="number" placeholder="0" />
+            </div>
+          </div>
+
+          <button id="btnBuildOdata" style="margin-top:1.5rem;">Generate OData URI</button>
+
+          <h3>Generated Output URI</h3>
+          <div class="output" id="odataResult" style="height:150px;">
+            <button class="copyBtn" onclick='copyToClipboard("odataResult")'>Copy</button>
+            <div class="result" style="word-break: break-all; white-space: pre-wrap;"></div>
+          </div>
+        </div>
+
+        <!-- 29: JWT Sandbox -->
+        <div class="tile double-tile" id="tile-jwt">
+          <h2>JWT Token Sandbox</h2>
+          <label for="jwtInput">Enter JWT Token</label>
+          <textarea id="jwtInput" rows="3" placeholder="eyJhbG..."></textarea>
+          <button id="btnDecodeJwt" style="margin-top: 1rem;">Decode Token</button>
+
+          <div style="display:flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+            <div style="flex:1; min-width:300px;">
+              <h3>Header</h3>
+              <div class="output" id="jwtHeaderResult" style="height:150px; overflow-y:auto;">
+                <div class="result"></div>
+              </div>
+            </div>
+            <div style="flex:1; min-width:300px;">
+              <h3>Payload</h3>
+              <div class="output" id="jwtPayloadResult" style="height:150px; overflow-y:auto;">
+                <div class="result"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 30: cURL to Fetch -->
+        <div class="tile double-tile" id="tile-curl">
+          <h2>cURL Converter</h2>
+          <div style="display:flex; gap: 1rem; flex-wrap:wrap;">
+            <div style="flex:1; min-width:300px;">
+              <label for="curlInput">Raw cURL String</label>
+              <textarea id="curlInput" rows="6"
+                placeholder="curl -X POST https://api.com -H 'Auth: Bearer x' -d '{\&quot;id\&quot;: 1}'"></textarea>
+            </div>
+            <div style="flex:1; min-width:300px;">
+              <label>JavaScript Output (Fetch)</label>
+              <div class="output" id="curlResult" style="height:100%;">
+                <button class="copyBtn" onclick='copyToClipboard("curlResult")'>Copy</button>
+                <div class="result"></div>
+              </div>
+            </div>
+          </div>
+          <button id="btnConvertCurl" style="margin-top:1rem;">Generate Fetch Code</button>
+        </div>
+
+        <!-- 31: Cron Expression Generator -->
+        <div class="tile double-tile" id="tile-cron">
+          <h2>Cron Expression Generator</h2>
+          <div class="grid-auto-responsive" style="margin-bottom: 1rem;">
+            <div>
+              <label>Minute (0-59)</label>
+              <input id="cronMin" type="text" value="0" />
+            </div>
+            <div>
+              <label>Hour (0-23)</label>
+              <input id="cronHour" type="text" value="12" />
+            </div>
+            <div>
+              <label>Day of Month</label>
+              <input id="cronDom" type="text" value="*" />
+            </div>
+            <div>
+              <label>Month (1-12)</label>
+              <input id="cronMonth" type="text" value="*" />
+            </div>
+            <div>
+              <label>Day of Week</label>
+              <input id="cronDow" type="text" value="*" />
+            </div>
+          </div>
+          <div style="display:flex; gap: 1rem; flex-wrap:wrap; align-items:center;">
+            <div style="flex:2;">
+              <label for="cronCompiled">Compiled String</label>
+              <input id="cronCompiled" type="text" value="0 12 * * *" readonly style="background:var(--card-bg);" />
+            </div>
+            <div style="flex:3;">
+              <label>Text Translation</label>
+              <div class="output" id="cronResult" style="height:44px; padding: 0.6rem 1rem;">
+                <div class="result" style="color:var(--accent-base); font-weight:bold;">At 12:00 PM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 32: Live Markdown Editor -->
+        <div class="tile double-tile" id="tile-markdown">
+          <h2>Live Markdown Editor</h2>
+          <div style="display:flex; gap: 1rem; flex-wrap:wrap; height: 400px;">
+            <div style="flex:1; min-width:300px; display:flex; flex-direction:column;">
+              <label for="mdInput">Markdown (.md)</label>
+              <div style="flex:1; position:relative;">
+                <textarea id="mdInput"># Hello World&#10;Write markdown **here**.</textarea>
+              </div>
+            </div>
+            <div style="flex:1; min-width:300px; display:flex; flex-direction:column;">
+              <label>HTML Preview</label>
+              <div class="output" id="mdResult" style="flex:1; overflow-y:auto; background:var(--card-bg);">
+                <div class="result" style="white-space:normal; padding: 1rem;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 33: Mock Data Seed Generator -->
+        <div class="tile double-tile" id="tile-mockdata">
+          <h2>Database Seed Generator</h2>
+          <div style="display:flex; gap: 1rem; margin-bottom: 1rem; align-items:flex-end;">
+            <div style="flex:1;">
+              <label for="mockTable">Table Name</label>
+              <input id="mockTable" type="text" value="Users" />
+            </div>
+            <div style="flex:1;">
+              <label for="mockRows">Row Count</label>
+              <input id="mockRows" type="number" value="10" />
+            </div>
+            <div style="flex:1;">
+              <label for="mockFormat">Export Format</label>
+              <select id="mockFormat">
+                <option value="sql">SQL INSERT</option>
+                <option value="csv">CSV</option>
+                <option value="json">JSON</option>
+              </select>
+            </div>
+            <div style="flex:1;">
+              <button id="btnGenerateMock">Generate Data</button>
+            </div>
+          </div>
+          <label>Generated Seed Data</label>
+          <div class="output" id="mockResult" style="height:250px;">
+            <button class="copyBtn" onclick='copyToClipboard("mockResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- 34: AI Image Generator -->
+        <div class="tile double-tile" id="tile-imagegen">
+          <h2>AI Image Generator</h2>
+          <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end; margin-bottom:1rem;">
+            <div style="flex:3;">
+              <label for="imgPrompt">Image Prompt</label>
+              <input id="imgPrompt" type="text" placeholder="A futuristic SAP dashboard with neon lights..." />
+            </div>
+            <div style="flex:1; min-width:160px;">
+              <label for="imgSource">Source API</label>
+              <select id="imgSource">
+                <option value="pollinations">Pollinations AI (Free, Text→Image)</option>
+                <option value="picsum">Picsum Photos (Unsplash)</option>
+                <option value="dicebear">DiceBear (Abstract Art)</option>
+                <option value="robohash">Robohash (Avatars)</option>
+              </select>
+            </div>
+            <div>
+              <button id="btnGenerateImage">Generate Image</button>
+            </div>
+          </div>
+
+          <p id="imgStatus" style="color:var(--text-muted); font-size:0.9rem; margin:0 0 1rem;"></p>
+
+          <div id="imgPlaceholder" style="
+        min-height: 320px;
+        border: 2px dashed var(--card-border);
+        border-radius: var(--radius);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--card-bg);
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        padding: 1.5rem;
+      ">
+            <span class="material-symbols-outlined"
+              style="font-size:3rem; opacity:0.3; margin-bottom:0.5rem;">image</span>
+            Generated image will appear here
+          </div>
+
+          <div
+            style="margin-top:1rem; background:rgba(45,212,191,0.05); border:1px solid rgba(45,212,191,0.2); border-radius:8px; padding:0.8rem 1rem;">
+            <p style="margin:0; font-size:0.8rem; color:var(--text-muted);">
+              ⚡ <strong>Pollinations AI</strong> uses free open AI models (no API key).
+              <strong>Picsum</strong> returns real Unsplash photos matching concept seeds.
+              <strong>DiceBear</strong> generates abstract art. <strong>Robohash</strong> creates unique robot avatars.
+            </p>
+          </div>
+        </div>
+
+      </div> <!-- end all-tools -->
+    </main>
+
+    <!-- History Drawer -->
+    <aside id="history-drawer" class="history-drawer hidden-drawer">
+      <div class="history-header">
+        <h2 style="margin:0; font-size:1.5rem; color:var(--text-main);">Tool History</h2>
+        <button onclick="toggleHistoryDrawer()"
+          style="width:auto; margin:0; padding:0 0.5rem; background:transparent; font-size:1.5rem; color:var(--text-main); box-shadow:none;">✕</button>
+      </div>
+      <div style="padding: 1.5rem;">
+        <input type="text" id="historySearch" placeholder="Search this history..."
+          style="margin-bottom: 1rem; background:var(--bg-dark); border-color:var(--card-border); color:var(--text-main);" />
+        <button id="btnClearHistory"
+          style="margin-top: 0; background:#e11d48; margin-bottom: 1.5rem; padding: 0.6rem;">Clear History For
+          Tool</button>
+        <div id="historyList" style="display:flex; flex-direction:column; gap: 1rem;"></div>
+      </div>
+    </aside>
+
+    <!-- Quick Note FAB -->
+    <button id="btnQuickNote" title="Quick Note / Notepad">
+      <span class="material-symbols-outlined" style="font-size:32px;">edit_note</span>
+    </button>
+  </div> <!-- end app-container -->
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- -------------------------------------------------------- -->
+  <!--  All custom JavaScript lives in script.js                  -->
+  <!-- -------------------------------------------------------- -->
+  <script src="script.js?v=3"></script>
+
+  <!-- Register Service Worker for PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed: ', err));
+      });
+    }
+  </script>
+</body>
+
+</html>
