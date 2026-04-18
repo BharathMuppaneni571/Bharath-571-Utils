@@ -20,7 +20,20 @@
   --radius: 12px;
   --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  --glow-color: rgba(45, 212, 191, 0.3);
+  --glass-bg: rgba(30, 41, 59, 0.4);
 }
+
+/* Base Glassmorphism Refinement */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 
 /* ========== LIGHT MODE ========== */
 body.light-mode {
@@ -681,57 +694,122 @@ body {
 
 /* --- Dashboard / Menu Landing Page --- */
 
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  perspective: 1500px; /* Essential for 3D tilt */
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
-  padding: 3rem;
-  max-width: 1400px;
+  margin-top: 2rem;
+  transform-style: preserve-3d;
 }
 
 .dash-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
   background: var(--card-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--card-border);
-  border-radius: var(--radius);
-  padding: 1.8rem;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
+  transition: transform 0.1s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  will-change: transform;
   box-shadow: var(--shadow-sm);
 }
 
 .dash-card:hover {
-  transform: translateY(-5px);
   background: var(--card-bg-hover);
-  border-color: var(--card-border-hover);
-  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-base);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 20px var(--glow-color);
+}
+
+/* Mouse Reactive Glow Layer */
+.card-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle 120px at var(--x, 50%) var(--y, 50%), var(--glow-color), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dash-card:hover .card-glow {
+  opacity: 1;
 }
 
 .dash-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 3rem;
+  margin-bottom: 1.2rem;
   background: var(--accent-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  transform: translateZ(40px); /* Deep pop effect */
+  transition: transform 0.3s ease;
 }
 
 .dash-card h3 {
   margin: 0 0 0.5rem 0;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   color: var(--text-main);
-  font-weight: 600;
+  font-weight: 700;
+  transform: translateZ(30px);
 }
 
 .dash-card p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.5;
+  transform: translateZ(20px);
 }
+
+/* Tool Pin Button */
+.pin-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+  transform: translateZ(50px);
+}
+
+.dash-card:hover .pin-btn {
+  opacity: 1;
+}
+
+.pin-btn.active {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.1);
+  opacity: 1;
+}
+
+.pin-btn:hover {
+  transform: translateZ(50px) scale(1.1);
+}
+
 
 /* --- Isolated Tool View --- */
 
@@ -1909,4 +1987,141 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
   background: rgba(248, 113, 113, 0.2);
   color: #f87171;
   transform: scale(1.05);
+}
+/* ================================================================
+   🚀 APEX OVERHAUL: Command Palette & Favorites
+   ================================================================ */
+
+.cmd-palette-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 100000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.cmd-palette-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cmd-palette-modal {
+  width: 100%;
+  max-width: 600px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--card-border-hover);
+  border-radius: 16px;
+  box-shadow: 0 30px 60px -12px rgba(0,0,0,0.6);
+  overflow: hidden;
+  transform: translateY(-20px) scale(0.95);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cmd-palette-overlay.open .cmd-palette-modal {
+  transform: translateY(0) scale(1);
+}
+
+.cmd-search-container {
+  display: flex;
+  align-items: center;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+  gap: 1rem;
+}
+
+.cmd-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-main);
+  outline: none;
+}
+
+.cmd-results {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 0.8rem;
+}
+
+.cmd-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.cmd-item:hover, .cmd-item.selected {
+  background: var(--card-bg-hover);
+}
+
+.cmd-item .material-symbols-outlined {
+  font-size: 1.5rem;
+  color: var(--accent-base);
+}
+
+.cmd-item .cmd-hint {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--card-border);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Favorite Stars */
+.pin-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s, transform 0.2s;
+  z-index: 10;
+  transform: translateZ(30px);
+}
+
+.dash-card:hover .pin-btn {
+  opacity: 1;
+}
+
+.pin-btn.active {
+  opacity: 1;
+  color: #fbbf24;
+}
+
+.pin-btn:hover {
+  transform: translateZ(30px) scale(1.2);
+}
+
+/* Dashboard Sections */
+.dashboard-section-header {
+  margin: 2rem 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.dashboard-section-header span {
+  height: 1px;
+  flex: 1;
+  background: var(--card-border);
 }

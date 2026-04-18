@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Bharath's Utils</title>
+  <title>Nexus Portal | Bharath's Utilities</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="icon" href="logo.png" type="image/svg+xml">
   <link rel="manifest" href="manifest.json">
@@ -196,7 +196,7 @@
         <div style="display:flex; align-items:center; gap: 0.5rem; overflow:hidden;" class="branding-header">
           <img src="logo.png" alt="Bharath"
             style="width:32px; height:32px; object-fit:contain; min-width:32px; background: white; border-radius:5px; padding:2px;">
-          <h2 id="sidebar-title" style="font-size:1.1rem; white-space:nowrap;">Bharath's Quick apps</h2>
+          <h2 id="sidebar-title" style="font-size:1.1rem; white-space:nowrap;">Nexus Portal</h2>
         </div>
         <button id="btnToggleSidebar"
           style="width:auto; margin:0; padding:0; background:transparent; font-size:1.4rem; box-shadow:none; color:var(--text-main);"
@@ -220,8 +220,7 @@
           <img src="logo.png" alt="Bharath"
             style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; background: white; border-radius: 8px; padding: 4px;">
           <h1 id="page-title"
-            style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width: 0; flex-shrink: 1;">Bharath's
-            Quick apps</h1>
+            style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width: 0; flex-shrink: 1;">Nexus Portal</h1>
         </div>
         <div style="display:flex; align-items:center; gap: 1.5rem;">
           <div class="search-container" id="searchBox">
@@ -275,8 +274,16 @@
         </div>
       </header>
 
-      <div id="view-dashboard" class="dashboard-grid">
-        <!-- Dashboard cards injected here by JS -->
+      <div id="view-dashboard" class="dashboard-container">
+        <div id="pinned-section" class="hidden">
+           <div class="dashboard-section-header">Pinned Tools <span></span></div>
+           <div id="pinned-grid" class="dashboard-grid"></div>
+        </div>
+        
+        <div class="dashboard-section-header">All Tools <span></span></div>
+        <div id="tools-grid" class="dashboard-grid">
+           <!-- Dashboard cards injected here by JS -->
+        </div>
       </div>
 
       <div id="all-tools" class="hidden">
@@ -1306,7 +1313,18 @@
     </button>
   </div> <!-- end app-container -->
 
-  <!-- Toast Container -->
+  <!-- Command Palette Overlay -->
+  <div id="command-palette" class="cmd-palette-overlay">
+    <div class="cmd-palette-modal">
+      <div class="cmd-search-container">
+        <span class="material-symbols-outlined">terminal</span>
+        <input type="text" id="cmd-input" class="cmd-input" placeholder="Search commands or tools... (e.g. 'b64 encode hello')" autocomplete="off">
+        <div style="font-size: 0.7rem; color: var(--text-muted); background: var(--card-border); padding: 2px 6px; border-radius: 4px;">ESC</div>
+      </div>
+      <div id="cmd-results" class="cmd-results"></div>
+    </div>
+  </div>
+
   <div id="toast-container"></div>
 
   <!-- -------------------------------------------------------- -->

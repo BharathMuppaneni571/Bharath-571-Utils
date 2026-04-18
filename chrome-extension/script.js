@@ -327,17 +327,20 @@ function getThemeBgLayer() {
   return _themeBgLayer;
 }
 
-function makeFloatEl({ content, size, left, dur, delay, opacity = 0.08, filter = '', color = '', extraStyle = '' }) {
+function makeFloatEl({ content, size, left, dur, delay, opacity = 0.08, filter = '', color = '', extraStyle = '', parallax = 0.05 }) {
   const el = document.createElement('div');
+  el.className = 'theme-float-item';
   el.innerHTML = content;
   el.style.cssText = `
     position:absolute; left:${left}%; bottom:-15%;
     font-size:${size}px; line-height:1; opacity:0;
     pointer-events:none; user-select:none;
     --float-op:${opacity};
+    --parallax-factor:${parallax};
     animation: themeFloatUp ${dur}s ${delay}s linear infinite;
     ${filter ? `filter:${filter};` : ''}
     ${color ? `color:${color};` : ''}
+    transform: translate(calc(var(--mouse-x, 0) * var(--parallax-factor)), calc(var(--mouse-y, 0) * var(--parallax-factor)));
     ${extraStyle}
   `;
   return el;
@@ -415,6 +418,7 @@ function initNarutoBg() {
       background: url("${AKATSUKI_SVG}") no-repeat center/contain;
       opacity:0; --float-op:${0.08+Math.random()*0.12};
       animation: cloudDrift ${30+Math.random()*30}s ${Math.random()*25}s linear infinite;
+      transform: translate(calc(var(--mouse-x, 0) * ${0.03 + Math.random()*0.05}), calc(var(--mouse-y, 0) * ${0.03 + Math.random()*0.05}));
     `;
     layer.appendChild(el);
   }
@@ -733,68 +737,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // ---- Recent section ----
-    const validRecents = recentIds.filter(id => tools.find(t => t.id === id && !pinnedIds.includes(id)));
-    if (validRecents.length > 0) {
-      const recentTitle = document.createElement('div');
-      recentTitle.className = 'dash-section-title';
-      recentTitle.innerHTML = '<span class="material-symbols-outlined">history</span> Recently Used';
-      dashboardGrid.appendChild(recentTitle);
-
-      validRecents.slice(0, 4).forEach(toolId => {
-        const tool = tools.find(t => t.id === toolId);
-        if (tool) {
-          const card = makeCard(tool, false, pinnedIds);
-          card.classList.add('recent-card');
-          dashboardGrid.appendChild(card);
-        }
-      });
-    }
-
-    // ---- All Tools section ----
-    const allTitle = document.createElement('div');
-    allTitle.className = 'dash-section-title';
-    allTitle.innerHTML = '<span class="material-symbols-outlined">apps</span> All Tools';
-    dashboardGrid.appendChild(allTitle);
-
-    tools.forEach(tool => dashboardGrid.appendChild(makeCard(tool, pinnedIds.includes(tool.id), pinnedIds)));
-  }
-
-  function makeCard(tool, isPinned, pinnedIds) {
-    const toolId   = tool.id;
-    const title    = tool.querySelector('h2').textContent;
-    const iconStr  = iconMap[toolId] || 'handyman';
-    const card = document.createElement('div');
-    card.className = 'dash-card' + (isPinned ? ' pinned-card' : '');
-    card.onclick  = (e) => { if (!e.target.closest('.pin-btn')) showTool(toolId); };
-    card.innerHTML = `
-      <div class="dash-icon material-symbols-outlined">${iconStr}</div>
-      <h3>${title}</h3>
-      <p>Quickly access the ${title} utility tool.</p>
-      <button class="pin-btn ${isPinned ? 'active' : ''}" title="${isPinned ? 'Unpin' : 'Pin'} tool" onclick="togglePinTool('${toolId}')">
-        ${isPinned ? '📌' : '📍'}
-      </button>
-    `;
-    return card;
-  }
-
-  window.togglePinTool = async function(toolId) {
-    let pins = await getPinnedTools();
-    if (pins.includes(toolId)) {
-      pins = pins.filter(p => p !== toolId);
-      showToast('Tool unpinned', 'info');
-    } else {
-      pins.unshift(toolId);
-      showToast('Tool pinned! 📌', 'success');
-    }
-    await authenticatedFetch('/api/prefs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: 'pinnedTools', value: JSON.stringify(pins) })
-    });
-    await chrome.storage.local.set({ pinnedTools: JSON.stringify(pins) });
-    buildDashboard();
-  };
+  // Global buildDashboard and togglePin functions are now defined outside for the Nexus Engine
 
   async function getPinnedTools() {
     try {
@@ -851,18 +794,59 @@ document.addEventListener("DOMContentLoaded", async () => {
     link.dataset.tooltip = title;
     link.innerHTML = `<span class="nav-icon material-symbols-outlined">${iconStr}</span> <span class="nav-text">${title}</span>`;
     sidebarNav.appendChild(link);
+    
+    // Also build a simple searchable index for the command palette
+    window._toolIndex = window._toolIndex || [];
+    window._toolIndex.push({ id: toolId, title, icon: iconStr });
   });
 
-  // Build initial dashboard
-  buildDashboard();
+  // Build initial dashboard (Global Nexus Engine)
+  if (typeof buildDashboard === 'function') buildDashboard();
+
+  // 3D Tilt & Mouse Tracking Engine
+  document.addEventListener('mousemove', (e) => {
+    // 1. Set Global Parallax Variables
+    const moveX = (e.clientX - window.innerWidth / 2) / 25;
+    const moveY = (e.clientY - window.innerHeight / 2) / 25;
+    document.documentElement.style.setProperty('--mouse-x', `${moveX}px`);
+    document.documentElement.style.setProperty('--mouse-y', `${moveY}px`);
+
+    const card = e.target.closest('.dash-card');
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Set glow variables
+    card.style.setProperty('--x', `${x}px`);
+    card.style.setProperty('--y', `${y}px`);
+
+    // Calculate rotation (3D Tilt)
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotX = (y - centerY) / 10;
+    const rotY = (centerX - x) / 10;
+
+    card.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+  });
+
+  document.addEventListener('mouseout', (e) => {
+    const card = e.target.closest('.dash-card');
+    if (card) {
+      card.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+    }
+  });
 
 
-  // Global Cmd/Ctrl + K Macro
+  // Global Cmd/Ctrl + K Macro -> Command Palette
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      const searchInput = document.getElementById('toolSearch');
-      if (searchInput) searchInput.focus();
+      window.toggleCommandPalette();
+    }
+    if (e.key === 'Escape') {
+      window.closeCommandPalette();
     }
   });
 
@@ -984,6 +968,9 @@ document.getElementById('toolSearch')?.addEventListener('input', (e) => {
   
   // DOM Filtering (Basic Tool Names)
   if (lowerTerm.length > 0 && document.getElementById('view-dashboard').classList.contains('hidden')) {
+    // Only show dashboard if searching and not in a tool
+    // but check if we're actually in a tool first
+    if (window.currentToolId) return; // Stay in tool if user is searching inside it (e.g. History)
     window.showDashboard();
   }
   
@@ -2915,38 +2902,185 @@ document.addEventListener('mouseout', (e) => {
 });
 
 /* ============================================================================
-   Tool Level Options & Auto-History Save
+   🚀 NEXUS PORTAL: Command Palette & Favorites Logic
 ============================================================================ */
-document.addEventListener('DOMContentLoaded', () => {
-  // Inject Tool-Level History buttons into every tile explicitly
-  document.querySelectorAll('.tile').forEach(tile => {
-    if (tile.id === 'tile-notepad') return;
-    const bar = document.createElement('div');
-    bar.style.cssText = "display: flex; justify-content: flex-end; margin-bottom: 1rem;";
-    bar.innerHTML = `<button class="btn-history-tool" onclick="window.openHistoryDrawer('${tile.id}')" style="margin:0; box-shadow:none; border:1px solid var(--card-border); background:var(--card-bg-hover);">
-      <span class="material-symbols-outlined" style="font-size:18px;">history</span> Tool History
-    </button>`;
-    tile.insertBefore(bar, tile.firstChild);
+
+window.toggleCommandPalette = function() {
+  const overlay = document.getElementById('command-palette');
+  const input = document.getElementById('cmd-input');
+  if (!overlay) return;
+  
+  overlay.classList.add('open');
+  input.value = "";
+  input.focus();
+  renderCommandResults("");
+};
+
+window.closeCommandPalette = function() {
+  const overlay = document.getElementById('command-palette');
+  if (overlay) overlay.classList.remove('open');
+};
+
+document.getElementById('command-palette')?.addEventListener('click', (e) => {
+  if (e.target.id === 'command-palette') window.closeCommandPalette();
+});
+
+document.getElementById('cmd-input')?.addEventListener('input', (e) => {
+  renderCommandResults(e.target.value.toLowerCase());
+});
+
+async function renderCommandResults(query) {
+  const container = document.getElementById('cmd-results');
+  if (!container) return;
+  container.innerHTML = "";
+
+  const pinned = await getPinnedTools();
+  
+  // 1. Instant Actions (Hardcoded shortcuts)
+  const actions = [
+    { title: "Base64 Encode", cmd: "b64 encode ", icon: "lock", hint: "Instant action" },
+    { title: "Base64 Decode", cmd: "b64 decode ", icon: "lock_open", hint: "Instant action" },
+    { title: "JSON Format", cmd: "json format ", icon: "code", hint: "Instant action" },
+    { title: "New Note", cmd: "note ", icon: "edit_note", hint: "Quick create" }
+  ];
+
+  const filteredActions = query.length > 0 ? actions.filter(a => a.cmd.includes(query) || a.title.toLowerCase().includes(query)) : actions;
+  
+  // 2. Tools
+  const filteredTools = (window._toolIndex || []).filter(t => t.title.toLowerCase().includes(query));
+
+  const all = [...filteredActions, ...filteredTools];
+  
+  if (all.length === 0) {
+    container.innerHTML = '<div style="padding:1rem;color:var(--text-muted);text-align:center;">No results found...</div>';
+    return;
+  }
+
+  all.slice(0, 10).forEach(item => {
+    const el = document.createElement('div');
+    el.className = "cmd-item";
+    el.innerHTML = `
+      <span class="material-symbols-outlined">${item.icon || 'star'}</span>
+      <span>${item.title}</span>
+      ${item.hint ? `<span class="cmd-hint">${item.hint}</span>` : ""}
+      <span class="cmd-hint" style="background:transparent;border:none;">⏎</span>
+    `;
+    el.onclick = () => {
+      if (item.id) {
+        window.showTool(item.id);
+      } else if (item.cmd) {
+        // execute action logic here if needed, for now just show tool
+        if (item.cmd.includes('note')) window.showTool('tile-notepad');
+        else if (item.cmd.includes('b64')) window.showTool('tile-b64');
+        else if (item.cmd.includes('json')) window.showTool('tile-json');
+      }
+      window.closeCommandPalette();
+    };
+    container.appendChild(el);
   });
-});
+}
 
-// Auto-save history when users execute tool actions
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  
-  const tile = btn.closest('.tile');
-  if (!tile || tile.id === 'tile-notepad') return;
-  
-  const text = btn.textContent.toLowerCase();
-  // Exclude utility buttons from triggering a save
-  if (text.includes('copy') || text.includes('history') || text.includes('clear') || btn.classList.contains('copyBtn')) return;
+// ----------------------------------------------------------------------------
+// Dashboard Enhancement: Sections & Pinning
+// ----------------------------------------------------------------------------
 
-  // Slight delay allows the tool logic to compute and populate its result DOM before scraping payload
-  setTimeout(() => {
-    if (typeof saveToolStateToHistory === 'function') {
-      saveToolStateToHistory(tile);
+window.togglePin = async function(e, toolId) {
+  if (e) e.stopPropagation();
+  let pinned = await getPinnedTools();
+  if (pinned.includes(toolId)) {
+    pinned = pinned.filter(id => id !== toolId);
+  } else {
+    pinned.push(toolId);
+  }
+  
+  await chrome.storage.local.set({ pinnedTools: JSON.stringify(pinned) });
+  // Try to sync to D1 as well if active
+  await authenticatedFetch('/api/prefs', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({ key: 'pinnedTools', value: JSON.stringify(pinned) })
+  }).catch(() => {});
+  
+  buildDashboard(); // Re-render
+  if (typeof showToast === 'function') showToast(pinned.includes(toolId) ? 'Tool pinned to top' : 'Tool unpinned', 'success');
+};
+
+async function buildDashboard() {
+  const toolsGrid  = document.getElementById('tools-grid');
+  const pinnedGrid = document.getElementById('pinned-grid');
+  const pinnedSec  = document.getElementById('pinned-section');
+  if (!toolsGrid) return;
+  
+  toolsGrid.innerHTML = "";
+  if (pinnedGrid) pinnedGrid.innerHTML = "";
+
+  const pinnedIds = await getPinnedTools();
+  const recentIds = await getRecentTools();
+  const tools = Array.from(document.querySelectorAll('#all-tools .tile'));
+  
+  if (pinnedSec) {
+    pinnedSec.classList.toggle('hidden', pinnedIds.length === 0);
+  }
+
+  // 1. Render Pinned Tools
+  pinnedIds.forEach(id => {
+    const tool = tools.find(t => t.id === id);
+    if (tool && pinnedGrid) {
+      pinnedGrid.appendChild(makeNexusCard(tool, true));
     }
-  }, 400);
-});
+  });
+
+  // 2. Render Recently Used (Optional Section)
+  const validRecents = recentIds.filter(id => tools.find(t => t.id === id && !pinnedIds.includes(id)));
+  if (validRecents.length > 0) {
+    const recentHeader = document.createElement('div');
+    recentHeader.className = "dashboard-section-header";
+    recentHeader.innerHTML = `Recently Used <span></span>`;
+    toolsGrid.appendChild(recentHeader);
+    
+    const recentGrid = document.createElement('div');
+    recentGrid.className = "dashboard-grid";
+    recentGrid.style.marginBottom = "2rem";
+    
+    validRecents.slice(0, 4).forEach(id => {
+      const tool = tools.find(t => t.id === id);
+      if (tool) recentGrid.appendChild(makeNexusCard(tool, false));
+    });
+    toolsGrid.appendChild(recentGrid);
+  }
+
+  // 3. Render All Tools
+  const allHeader = document.createElement('div');
+  allHeader.className = "dashboard-section-header";
+  allHeader.innerHTML = `All Utilities <span></span>`;
+  toolsGrid.appendChild(allHeader);
+
+  const allGrid = document.createElement('div');
+  allGrid.className = "dashboard-grid";
+  tools.forEach(tool => {
+    allGrid.appendChild(makeNexusCard(tool, pinnedIds.includes(tool.id)));
+  });
+  toolsGrid.appendChild(allGrid);
+}
+
+function makeNexusCard(tool, isPinned) {
+  const toolId = tool.id;
+  const title = tool.querySelector('h2').textContent;
+  const iconStr = iconMap[toolId] || 'handyman';
+  const desc = tool.dataset.desc || `Quick access to the ${title} processing tool.`;
+
+  const card = document.createElement('div');
+  card.className = "dash-card";
+  card.onclick = () => window.showTool(toolId);
+  card.innerHTML = `
+    <div class="card-glow"></div>
+    <button class="pin-btn ${isPinned ? 'active' : ''}" onclick="window.togglePin(event, '${toolId}')" title="${isPinned ? 'Unpin' : 'Pin to top'}">
+      <span class="material-symbols-outlined" style="font-size:18px;">${isPinned ? 'push_pin' : 'star'}</span>
+    </button>
+    <span class="dash-icon material-symbols-outlined">${iconStr}</span>
+    <h3>${title}</h3>
+    <p>${desc}</p>
+  `;
+  return card;
+}
 
