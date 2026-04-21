@@ -14,6 +14,7 @@ async function authenticatedFetch(url, options = {}) {
   return response;
 }
 
+
 window.switchAuthTab = function(type) {
   const loginTab = document.getElementById('tab-login');
   const registerTab = document.getElementById('tab-register');
@@ -2927,4 +2928,4 @@ document.addEventListener('click', (e) => {
     }
   }, 400);
 });
-
+
