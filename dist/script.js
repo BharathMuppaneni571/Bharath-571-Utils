@@ -619,11 +619,13 @@ function initAuthOverlay() {
   // Generate star field
   const starsEl = document.getElementById('auth-stars');
   if (starsEl) {
-    const starCount = 80;
+    starsEl.innerHTML = '';
+    const starCount = 140; // Increased density for a richer sky
     for (let i = 0; i < starCount; i++) {
       const star = document.createElement('div');
       star.className = 'auth-star';
-      const size = 1 + Math.random() * 2;
+      const size = 1 + Math.random() * 2.5;
+      const opacity = 0.4 + Math.random() * 0.5; // Significantly brighter stars
       star.style.cssText = `
         left: ${Math.random() * 100}%;
         top:  ${Math.random() * 100}%;
@@ -631,10 +633,12 @@ function initAuthOverlay() {
         height: ${size}px;
         --dur: ${2 + Math.random() * 4}s;
         --delay: ${Math.random() * 4}s;
-        --op: ${0.2 + Math.random() * 0.7};
+        --op: ${opacity};
       `;
       starsEl.appendChild(star);
     }
+    // Dynamic shooting stars
+    startShootingStarsLoop(starsEl);
   }
 
   // Give the app-container a reveal class after token-based login
@@ -643,6 +647,41 @@ function initAuthOverlay() {
     appContainer.classList.add('page-reveal');
     setTimeout(() => appContainer.classList.remove('page-reveal'), 700);
   }
+}
+
+function startShootingStarsLoop(container) {
+  const spawn = () => {
+    if (!document.hidden && container.offsetParent !== null) {
+      spawnShootingStar(container);
+    }
+    setTimeout(spawn, 3000 + Math.random() * 5000);
+  };
+  setTimeout(spawn, 2000);
+}
+
+function spawnShootingStar(container) {
+  const star = document.createElement('div');
+  star.className = 'shooting-star';
+  
+  const startX = Math.random() * 100;
+  const startY = Math.random() * 50; 
+  const angle = 25 + Math.random() * 40; 
+  const duration = 1 + Math.random() * 2;
+  const travelDist = 400 + Math.random() * 400;
+  
+  const rad = (angle * Math.PI) / 180;
+  const travelX = Math.cos(rad) * travelDist;
+  const travelY = Math.sin(rad) * travelDist;
+
+  star.style.left = startX + '%';
+  star.style.top = startY + '%';
+  star.style.setProperty('--angle', angle + 'deg');
+  star.style.setProperty('--travel-x', travelX + 'px');
+  star.style.setProperty('--travel-y', travelY + 'px');
+  star.style.animation = `shootingStarAnim ${duration}s cubic-bezier(0.4, 0, 1, 1) forwards`;
+  
+  container.appendChild(star);
+  setTimeout(() => star.remove(), duration * 1000 + 100);
 }
 
 document.addEventListener("DOMContentLoaded", () => {

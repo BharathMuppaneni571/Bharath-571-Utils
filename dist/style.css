@@ -1541,10 +1541,46 @@ hr { display: none; } /* Hide hrs as the layout handles spacing natively */
   border-radius: 50%;
   animation: starTwinkle var(--dur, 3s) ease-in-out var(--delay, 0s) infinite alternate;
   opacity: var(--op, 0.5);
+  box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.6); /* Added glow */
 }
+
 @keyframes starTwinkle {
   from { opacity: var(--op, 0.5); transform: scale(1); }
-  to   { opacity: 0.05; transform: scale(0.5); }
+  to   { opacity: 0.15; transform: scale(0.6); } /* Maintain higher minimum visibility */
+}
+
+.shooting-star {
+  position: absolute;
+  width: 120px;
+  height: 2px;
+  /* Reverse gradient so the bright head (#fff) is on the leading edge (right) */
+  background: linear-gradient(90deg, transparent, #fff);
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transform-origin: right center; /* Streak grows from the head */
+}
+
+/* Bright tip/head of the shooting star */
+.shooting-star::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 2px #fff;
+}
+
+@keyframes shootingStarAnim {
+  0% { transform: translate(0, 0) rotate(var(--angle)) scaleX(0); opacity: 0; }
+  5% { opacity: 1; transform: translate(0, 0) rotate(var(--angle)) scaleX(1); }
+  90% { opacity: 1; }
+  100% { transform: translate(var(--travel-x), var(--travel-y)) rotate(var(--angle)) scaleX(0); opacity: 0; }
 }
 
 /* Floating accent orbs */
