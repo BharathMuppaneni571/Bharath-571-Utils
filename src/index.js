@@ -244,7 +244,13 @@ async function handleApiRequest(request, env, url, headers) {
       });
       history.forEach(h => {
         if (matcher.test(h.tool_id) || matcher.test(h.payload)) {
-          results.push({ type: 'history', title: h.tool_id.replace('tile-', ''), time: h.created_at, payload: h.payload });
+          results.push({ 
+            type: 'history', 
+            toolId: h.tool_id, 
+            title: h.tool_id.replace('tile-', ''), 
+            time: h.created_at, 
+            payload: h.payload 
+          });
         }
       });
 

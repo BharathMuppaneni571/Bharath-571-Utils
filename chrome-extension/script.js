@@ -1078,11 +1078,15 @@ document.getElementById('toolSearch')?.addEventListener('input', (e) => {
           } else {
             item.onclick = () => {
               dropdown.style.display = 'none';
-              window.showTool('tile-' + r.title);
+              const toolId = r.toolId || ('tile-' + r.title);
+              window.showTool(toolId);
               if(r.payload) {
                 setTimeout(() => {
-                  try { const parsed = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload; if(typeof restoreToolState === 'function') restoreToolState('tile-' + r.title, parsed); } catch(e) {}
-                }, 100);
+                  try {
+                    const parsed = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+                    if(typeof restoreToolState === 'function') restoreToolState(toolId, parsed);
+                  } catch(e) {}
+                }, 150);
               }
             };
           }
@@ -2853,14 +2857,19 @@ function restoreToolState(toolId, payload) {
       if(res) res.textContent = val;
       continue;
     }
-    if(window.cmEditors && window.cmEditors[key]) {
-      window.cmEditors[key].setValue(val);
-      continue;
-    }
-    const el = document.getElementById(key);
+    
+    // Prefer finding elements within the specific tile to avoid global ID conflicts
+    let el = tile.querySelector('#' + key) || document.getElementById(key);
     if(el) {
-      if(el.type === 'checkbox') el.checked = val;
-      else el.value = val;
+      if(window.cmEditors && window.cmEditors[key]) {
+        window.cmEditors[key].setValue(val);
+      } else if(el.type === 'checkbox') {
+        el.checked = val;
+      } else {
+        el.value = val;
+      }
+      // Trigger input event to notify any listeners
+      el.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
 }
@@ -3034,7 +3043,7 @@ async function renderCommandResults(query) {
       if (item.type === 'tool') {
         window.showTool(item.id);
       } else if (item.type === 'note') {
-        window.showTool('tile-Notepad');
+        window.showTool('tile-notepad');
         setTimeout(() => { 
           window.currentNoteId = item.id; 
           if(typeof loadNotesList === 'function') loadNotesList(); 
@@ -3042,8 +3051,9 @@ async function renderCommandResults(query) {
       } else if (item.type === 'history' && item.payload) {
         try {
           const payload = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
-          window.showTool('tile-' + item.title);
-          setTimeout(() => { if(typeof restoreToolState === 'function') restoreToolState('tile-' + item.title, payload); }, 150);
+          const toolId = item.toolId || ('tile-' + item.title);
+          window.showTool(toolId);
+          setTimeout(() => { if(typeof restoreToolState === 'function') restoreToolState(toolId, payload); }, 150);
         } catch(e) {}
       } else if (item.action) {
         item.action();

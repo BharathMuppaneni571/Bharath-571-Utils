@@ -1076,11 +1076,15 @@ document.getElementById('toolSearch')?.addEventListener('input', (e) => {
           } else {
             item.onclick = () => {
               dropdown.style.display = 'none';
-              window.showTool('tile-' + r.title);
+              const toolId = r.toolId || ('tile-' + r.title);
+              window.showTool(toolId);
               if(r.payload) {
                 setTimeout(() => {
-                  try { const parsed = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload; if(typeof restoreToolState === 'function') restoreToolState('tile-' + r.title, parsed); } catch(e) {}
-                }, 100);
+                  try {
+                    const parsed = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+                    if(typeof restoreToolState === 'function') restoreToolState(toolId, parsed);
+                  } catch(e) {}
+                }, 150);
               }
             };
           }
@@ -2848,14 +2852,19 @@ function restoreToolState(toolId, payload) {
       if(res) res.textContent = val;
       continue;
     }
-    if(window.cmEditors && window.cmEditors[key]) {
-      window.cmEditors[key].setValue(val);
-      continue;
-    }
-    const el = document.getElementById(key);
+    
+    // Prefer finding elements within the specific tile to avoid global ID conflicts
+    let el = tile.querySelector('#' + key) || document.getElementById(key);
     if(el) {
-      if(el.type === 'checkbox') el.checked = val;
-      else el.value = val;
+      if(window.cmEditors && window.cmEditors[key]) {
+        window.cmEditors[key].setValue(val);
+      } else if(el.type === 'checkbox') {
+        el.checked = val;
+      } else {
+        el.value = val;
+      }
+      // Trigger input event to notify any listeners
+      el.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
 }
