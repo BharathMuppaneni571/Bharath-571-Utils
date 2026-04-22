@@ -193,7 +193,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header"
         style="display:flex; justify-content:space-between; align-items:center; padding-left:1.5rem; padding-right:1.5rem;">
-        <div style="display:flex; align-items:center; gap: 0.5rem; overflow:hidden;" class="branding-header">
+        <div style="display:flex; align-items:center; gap: 0.5rem; overflow:hidden; cursor:pointer;" class="branding-header" onclick="showDashboard(event)">
           <img src="logo.png" alt="Bharath"
             style="width:32px; height:32px; object-fit:contain; min-width:32px; background: white; border-radius:5px; padding:2px;">
           <h2 id="sidebar-title" style="font-size:1.1rem; white-space:nowrap;">Nexus-571</h2>
@@ -215,7 +215,7 @@
     <main class="main-content">
       <div id="mobile-backdrop" class="mobile-backdrop" onclick="toggleSidebar()"></div>
       <header class="top-nav" style="justify-content: space-between;">
-        <div style="display:flex; align-items:center; gap: 1rem; flex: 1; min-width: 0;">
+        <div style="display:flex; align-items:center; gap: 1rem; flex: 1; min-width: 0; cursor:pointer;" onclick="showDashboard(event)">
           <button id="btnMobileToggle" class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
           <img src="logo.png" alt="Bharath"
             style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; background: white; border-radius: 8px; padding: 4px;">

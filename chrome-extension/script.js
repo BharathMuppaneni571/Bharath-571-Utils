@@ -940,9 +940,19 @@ window.showDashboard = function(e) {
   document.getElementById('all-tools').classList.add('hidden');
   document.getElementById('page-title').textContent = "Nexus-571";
   window.currentToolId = null;
+
+  // Reset filtering and search state
+  document.querySelectorAll('.dash-card').forEach(el => el.style.display = '');
+  document.querySelectorAll('#sidebar-nav .nav-item').forEach(el => el.style.display = '');
+  const searchInput = document.getElementById('toolSearch');
+  if (searchInput) searchInput.value = '';
+  const dropdown = document.getElementById('searchDropdown');
+  if (dropdown) dropdown.style.display = 'none';
   
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  document.querySelector('.nav-item').classList.add('active'); // Dashboard link is first
+  // Find the dashboard link and set it as active
+  const dashLink = Array.from(document.querySelectorAll('.nav-item')).find(el => el.textContent.includes('Dashboard'));
+  if (dashLink) dashLink.classList.add('active');
 };
 
 window.showTool = function(toolId) {

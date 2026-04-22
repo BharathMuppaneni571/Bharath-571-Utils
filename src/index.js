@@ -145,14 +145,15 @@ async function handleApiRequest(request, env, url, headers) {
   if (url.pathname === '/api/history') {
     if (method === 'GET') {
       const toolId = url.searchParams.get('tool');
-      let query  = 'SELECT * FROM tool_history WHERE user_id = ?';
+      let query;
       let params = [userId];
 
       if (toolId) {
-        query += ' AND tool_id = ? ORDER BY created_at DESC LIMIT 50';
+        // Use GROUP BY to hide duplicates from history display
+        query = 'SELECT id, tool_id, payload, MAX(created_at) as created_at FROM tool_history WHERE user_id = ? AND tool_id = ? GROUP BY payload ORDER BY created_at DESC LIMIT 50';
         params.push(toolId);
       } else {
-        query += ' ORDER BY created_at DESC LIMIT 100';
+        query = 'SELECT id, tool_id, payload, MAX(created_at) as created_at FROM tool_history WHERE user_id = ? GROUP BY tool_id, payload ORDER BY created_at DESC LIMIT 100';
       }
 
       const { results } = await env.DB.prepare(query).bind(...params).all();
@@ -164,9 +165,17 @@ async function handleApiRequest(request, env, url, headers) {
       if (!body.toolId || !body.payload)
         return errorResponse(400, 'Missing parameters', headers);
 
+      const payloadStr = JSON.stringify(body.payload);
+
+      // Clean up duplicates: remove any existing entry with the same payload for this tool/user
+      // This ensures that repeating an action moves it to the top of the history.
+      await env.DB.prepare(
+        'DELETE FROM tool_history WHERE user_id = ? AND tool_id = ? AND payload = ?'
+      ).bind(userId, body.toolId, payloadStr).run();
+
       await env.DB.prepare(
         'INSERT INTO tool_history (user_id, tool_id, payload) VALUES (?, ?, ?)'
-      ).bind(userId, body.toolId, JSON.stringify(body.payload)).run();
+      ).bind(userId, body.toolId, payloadStr).run();
 
       return jsonResponse({ success: true }, headers);
     }
@@ -213,7 +222,7 @@ async function handleApiRequest(request, env, url, headers) {
 
       const { results: notes   } = await env.DB.prepare('SELECT id, content, tags, updated_at FROM notes WHERE user_id = ?').bind(userId).all();
       const { results: history } = await env.DB.prepare(
-        'SELECT tool_id, payload, created_at FROM tool_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 500'
+        'SELECT tool_id, payload, MAX(created_at) as created_at FROM tool_history WHERE user_id = ? GROUP BY tool_id, payload ORDER BY created_at DESC LIMIT 500'
       ).bind(userId).all();
 
       let matcher;
