@@ -1,0 +1,22 @@
+These changes are designed to transition the project from a powerful utility collection into a professional-grade, high-performance platform.
+
+### 🚀 Performance & Scalability (Backend)
+*   **SQL Indexing**: Implement performance indexes on `tool_history` and `notes` tables in D1 to ensure sub-millisecond query times as your data grows.
+*   **Server-Side Search**: Migrate search logic from client-side regex to SQL `LIKE` and `GLOB` queries for massive scalability and reduced browser memory usage.
+*   **D1 Database Migrations**: Formalize the database schema with a versioned migration system using Wrangler.
+
+### 🍱 User Interface & Experience (Frontend)
+*   **Categorized Dashboard**: Implement a "Specialized Sections" view (e.g., Security, Images, Developers) to group tools logically rather than one giant list.
+*   **"Recents" Section**: A dynamic "Recently Used" bar at the top of the dashboard for instant access to your most-used utilities.
+*   **Persistent Tool State**: Deep integration of the Storage Bridge to ensure every input and setting is remembered across sessions and devices.
+*   **Advanced Search (Omnibox)**: Enhancing the global search to search across tool titles, your saved notes, and history simultaneously.
+
+### 🌐 Browser Integration (Extension)
+*   **Context Menu Support**: The ability to right-click any text in your browser and "Send to Nexus" (e.g., Send to Base64 Decoder or JSON Formatter).
+*   **Omnibox Shortcuts**: Typing `nx [query]` in your address bar to search and launch tools directly without opening the dashboard.
+*   **Background Service Worker**: Optimizing `background.js` to handle cross-origin data and sync your clipboard automatically to specific tools.
+
+### 🛠️ Developer Productivity & Build
+*   **Modular Namespace Architecture**: (Partially Implemented) Continuing the migration of the monolithic `script.js` into structured modules (`Nexus.Core`, `Nexus.UI`, `Nexus.Tools`).
+*   **Automated Build System**: Setting up a proper `dist/` build pipeline that minifies assets and handles environment variables (Dev vs Prod).
+*   **Asset Syncing**: Automating the synchronization between the `chrome-extension/` folder and the Cloudflare `dist/` assets to prevent version drift.
