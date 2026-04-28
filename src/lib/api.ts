@@ -9,10 +9,29 @@ export const Storage = {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         return new Promise((resolve) => {
           // @ts-ignore
-          chrome.storage.local.get([key], (result) => {
-            const val = result[key] || localStorage.getItem(key) || null;
+          chrome.storage.local.get([key], async (result) => {
+            let val: any = result[key] || localStorage.getItem(key) || null;
+            
+            // SSO: Try syncing from Website Cookie if in extension context and token is missing
+            if (!val && key === 'bharath_utils_auth_token' && typeof chrome.cookies !== 'undefined') {
+              try {
+                // @ts-ignore
+                const cookie = await chrome.cookies.get({
+                  url: 'https://bharath-571-utils.muppanenibharath571.workers.dev',
+                  name: 'bharath_utils_auth_token'
+                });
+                if (cookie && cookie.value) {
+                  val = cookie.value;
+                  console.log('SSO: Token synced from cookies');
+                  await this.set(key, val as string);
+                }
+              } catch (e) {
+                console.warn('Cookie sync failed:', e);
+              }
+            }
+
             console.log(`Storage Get [${key}]:`, val ? 'Found' : 'Null');
-            resolve(val);
+            resolve(val as string | null);
           });
         });
       }
