@@ -53,21 +53,7 @@ async function handleApiRequest(request, env, url, headers) {
   }
 
   if (url.pathname === '/api/auth/login' && method === 'POST') {
-    const { username, password } = await request.json();
-    if (!username || !password) return errorResponse(400, 'Username and password required', headers);
-
-    const user = await env.DB.prepare('SELECT id, password_hash FROM users WHERE username = ?').bind(username).first();
-    if (!user) return errorResponse(401, 'Invalid username or password', headers);
-
-    const [algo, salt, hash] = user.password_hash.split('$');
-    if (algo !== 'pbkdf2') return errorResponse(500, 'Invalid password storage format', headers);
-
-    const computedHash = await hashPassword(password, salt);
-    if (computedHash !== hash) return errorResponse(401, 'Invalid username or password', headers);
-
-    const token = await generateJWT({ userId: user.id, username }, env.JWT_SECRET || 'fallback_secret');
-    const cookie = `bharath_utils_auth_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000; Secure`;
-    return jsonResponse({ success: true, token, username }, { ...headers, 'Set-Cookie': cookie });
+    // ... (existing login code)
   }
 
   // ------------ GITHUB OAUTH ------------
