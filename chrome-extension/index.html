@@ -6,7 +6,7 @@
   <title>Nexus-571</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="icon" href="logo.png" type="image/svg+xml">
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="style.css?v=10">
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -136,6 +136,17 @@
         </div>
         <button class="auth-submit-btn" onclick="handleUpdatePassword()">Update Password</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Command Palette -->
+  <div id="cmd-palette" class="cmd-palette-overlay">
+    <div class="cmd-palette-modal">
+      <div class="cmd-search-container">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" id="cmdInput" class="cmd-input" placeholder="Search tools or commands... (Esc to close)" autocomplete="off">
+      </div>
+      <div id="cmdResults" class="cmd-results"></div>
     </div>
   </div>
 
@@ -1284,6 +1295,113 @@
               <strong>Picsum</strong> returns real Unsplash photos matching concept seeds.
               <strong>DiceBear</strong> generates abstract art. <strong>Robohash</strong> creates unique robot avatars.
             </p>
+          </div>
+        </div>
+
+        <!-- 35: JWT Debugger -->
+        <div class="tile double-tile" id="tile-jwt">
+          <h2>JWT Debugger</h2>
+          <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <div style="flex:1; min-width:300px;">
+              <label for="jwtInput">Encoded Token</label>
+              <textarea id="jwtInput" placeholder="Paste JWT here..." style="height:350px; font-family:monospace;"></textarea>
+            </div>
+            <div style="flex:1; min-width:300px; display:flex; flex-direction:column; gap:1rem;">
+              <div>
+                <label>Header (Decoded)</label>
+                <div class="output" id="jwtHeader" style="height:120px; font-family:monospace; background:var(--card-bg);">
+                   <div class="result"></div>
+                </div>
+              </div>
+              <div>
+                <label>Payload (Decoded)</label>
+                <div class="output" id="jwtPayload" style="height:200px; font-family:monospace; background:var(--card-bg);">
+                   <div class="result"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 36: Epoch Converter -->
+        <div class="tile" id="tile-epoch">
+          <h2>Epoch Converter</h2>
+          <label for="epochInput">Unix Timestamp (seconds or ms)</label>
+          <input id="epochInput" type="text" placeholder="e.g. 1714664400" />
+          <button id="btnEpochToDate">Convert to Date</button>
+          
+          <label for="dateInput">Date String</label>
+          <input id="dateInput" type="datetime-local" />
+          <button id="btnDateToEpoch">Convert to Epoch</button>
+          
+          <h3>Result</h3>
+          <div class="output" id="epochResult">
+            <button class="copyBtn" onclick='copyToClipboard("epochResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- 37: JSON <> YAML Converter -->
+        <div class="tile" id="tile-jsonyaml">
+          <h2>JSON ↔ YAML</h2>
+          <textarea id="jyInput" placeholder="Paste JSON or YAML here..." style="height:200px; font-family:monospace;"></textarea>
+          <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+            <button id="btnJsonToYaml" style="flex:1;">JSON → YAML</button>
+            <button id="btnYamlToJson" style="flex:1;">YAML → JSON</button>
+          </div>
+          <h3>Result</h3>
+          <div class="output" id="jyResult" style="height:200px; font-family:monospace;">
+            <button class="copyBtn" onclick='copyToClipboard("jyResult")'>Copy</button>
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- 38: RegEx Tester -->
+        <div class="tile double-tile" id="tile-regex">
+          <h2>RegEx Tester</h2>
+          <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+            <div style="flex:2;">
+              <label for="rePattern">Regular Expression</label>
+              <input id="rePattern" type="text" placeholder="e.g. ([a-z]+)" style="font-family:monospace;" />
+            </div>
+            <div style="flex:1;">
+              <label for="reFlags">Flags</label>
+              <input id="reFlags" type="text" placeholder="gim" value="g" />
+            </div>
+          </div>
+          <label for="reInput">Test String</label>
+          <textarea id="reInput" placeholder="Enter text to test against the regex..." style="height:150px;"></textarea>
+          <button id="btnTestRegex">Run Test</button>
+          
+          <h3>Matches</h3>
+          <div class="output" id="reResult" style="height:150px;">
+            <div class="result"></div>
+          </div>
+        </div>
+
+        <!-- 39: Pro Unit Converter -->
+        <div class="tile" id="tile-unit">
+          <h2>Pro Unit Converter</h2>
+          <div style="display:flex; gap:0.5rem; flex-direction:column;">
+            <label for="unitType">Category</label>
+            <select id="unitType">
+              <option value="length">Length (km, m, mi, ft)</option>
+              <option value="weight">Weight (kg, g, lb, oz)</option>
+              <option value="data">Data (GB, MB, KB, B)</option>
+              <option value="temp">Temperature (C, F, K)</option>
+            </select>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <input id="unitFromVal" type="number" value="1" style="flex:1;" />
+              <select id="unitFromType" style="flex:1;"></select>
+              <span>=</span>
+              <select id="unitToType" style="flex:1;"></select>
+            </div>
+            <button id="btnConvertUnit">Convert</button>
+          </div>
+          <h3>Result</h3>
+          <div class="output" id="unitResult">
+            <button class="copyBtn" onclick='copyToClipboard("unitResult")'>Copy</button>
+            <div class="result"></div>
           </div>
         </div>
 

@@ -16,7 +16,18 @@ import {
   Shield,
   Terminal,
   Clock,
-  Pin
+  Pin,
+  FileCode,
+  Search,
+  Edit3,
+  Database,
+  Table,
+  FileQuestion,
+  Globe,
+  Minimize2,
+  Maximize,
+  FileText,
+  QrCode
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 
@@ -44,6 +55,26 @@ const tools: Tool[] = [
   { id: 'jwt', name: 'JWT Sandbox', desc: 'Inspect JWT tokens.', icon: Shield, color: 'from-violet-500/20 to-purple-500/20' },
   { id: 'curl', name: 'cURL Converter', desc: 'cURL to Fetch JS.', icon: Terminal, color: 'from-slate-500/20 to-slate-400/20' },
   { id: 'cron', name: 'Cron Generator', desc: 'Build cron expressions.', icon: Clock, color: 'from-emerald-500/20 to-green-500/20' },
+  { id: 'imagegen', name: 'AI Image Gen', desc: 'Generate images via AI prompts.', icon: ImageIcon, color: 'from-fuchsia-500/20 to-purple-500/20' },
+  { id: 'epoch', name: 'Epoch Converter', icon: Clock, desc: 'Unix timestamp conversion.', color: 'from-amber-500/20 to-orange-500/20' },
+  { id: 'jsonyaml', name: 'JSON ↔ YAML', icon: FileCode, desc: 'Convert between JSON and YAML.', color: 'from-blue-500/20 to-indigo-500/20' },
+  { id: 'regex', name: 'RegEx Tester', icon: Search, desc: 'Test Regular Expressions.', color: 'from-red-500/20 to-rose-500/20' },
+  { id: 'markdown', name: 'Markdown Editor', icon: Edit3, desc: 'Live Markdown preview.', color: 'from-slate-500/20 to-slate-400/20' },
+  { id: 'mockdata', name: 'Mock Data Gen', icon: Database, desc: 'Generate dummy data sets.', color: 'from-emerald-500/20 to-teal-500/20' },
+  { id: 'csvjson', name: 'CSV ↔ JSON', icon: Table, desc: 'Convert CSV to/from JSON.', color: 'from-cyan-500/20 to-blue-500/20' },
+  { id: 'binhex', name: 'Binary ↔ Hex', icon: Binary, desc: 'Bitwise data conversion.', color: 'from-slate-500/20 to-indigo-500/20' },
+  { id: 'filedetector', name: 'File Detector', icon: FileQuestion, desc: 'Identify file via magic bytes.', color: 'from-orange-500/20 to-rose-500/20' },
+  { id: 'mimelookup', name: 'MIME Lookup', icon: FileCode, desc: 'Registry extension search.', color: 'from-blue-500/20 to-cyan-500/20' },
+  { id: 'img2pdf', name: 'Images to PDF', icon: FileText, desc: 'Batch convert images.', color: 'from-orange-500/20 to-red-500/20' },
+  { id: 'qr', name: 'QR Generator', icon: QrCode, desc: 'Create custom QR codes.', color: 'from-emerald-500/20 to-green-500/20' },
+  { id: 'xmljson', name: 'XML ↔ JSON', icon: CodeXml, desc: 'Convert XML to/from JSON.', color: 'from-orange-500/20 to-yellow-500/20' },
+  { id: 'minify', name: 'Code Minifier', icon: Minimize2, desc: 'Compress JS/CSS/HTML.', color: 'from-slate-500/20 to-slate-400/20' },
+  { id: 'jsonpath', name: 'JSONPath Extractor', icon: Search, desc: 'Query JSON with paths.', color: 'from-blue-500/20 to-cyan-500/20' },
+  { id: 'handlebars', name: 'Handlebars Binder', icon: FileCode, desc: 'Template data binding.', color: 'from-orange-500/20 to-rose-500/20' },
+  { id: 'odata', name: 'OData Builder', icon: Database, desc: 'Build OData query URLs.', color: 'from-blue-500/20 to-indigo-500/20' },
+  { id: 'qrpdf', name: 'QR Batch Export', icon: FileText, desc: 'Export QR batch as PDF.', color: 'from-emerald-500/20 to-teal-500/20' },
+  { id: 'restapi', name: 'REST Client', icon: Globe, desc: 'Lightweight API testing.', color: 'from-fuchsia-500/20 to-purple-500/20' },
+  { id: 'cropresize', name: 'Image Resize', icon: Maximize, desc: 'Scale images to pixels.', color: 'from-slate-500/20 to-blue-500/20' },
 ];
 
 const Dashboard: React.FC = () => {

@@ -15,7 +15,14 @@
     "lucide-react": "^1.11.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "zustand": "^5.0.12"
+    "zustand": "^5.0.12",
+    "js-yaml": "^4.1.0",
+    "marked": "^15.0.7",
+    "jspdf": "^2.5.1",
+    "qrcode": "^1.5.3",
+    "xml-js": "^1.6.11",
+    "jsonpath-plus": "^10.3.0",
+    "handlebars": "^4.7.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -25,6 +32,8 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "@types/js-yaml": "^4.0.9",
+    "@types/qrcode": "^1.5.5",
     "eslint": "^10.2.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",

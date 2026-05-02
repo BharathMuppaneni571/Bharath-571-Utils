@@ -17,8 +17,13 @@
   "permissions": [
     "storage",
     "tabs",
-    "cookies"
+    "cookies",
+    "contextMenus",
+    "notifications"
   ],
+  "background": {
+    "service_worker": "sw.js"
+  },
   "host_permissions": [
     "https://*/*"
   ]

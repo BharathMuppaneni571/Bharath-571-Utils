@@ -6,7 +6,7 @@ const AUTH_USER_KEY = 'bharath_utils_username';
 
 // 🛡️ Robust Auth Utility for Popup (Handles Sync with Chrome Storage)
 async function getAuthToken() {
-  const data = await chrome.storage.local.get([AUTH_TOKEN_KEY]);
+  const data = await chrome.storage.sync.get([AUTH_TOKEN_KEY]);
   return data[AUTH_TOKEN_KEY];
 }
 
@@ -106,7 +106,7 @@ async function checkAuth() {
       if (cookie && cookie.value) {
         token = cookie.value;
         // Save to local storage for future use
-        await chrome.storage.local.set({ [AUTH_TOKEN_KEY]: token });
+        await chrome.storage.sync.set({ [AUTH_TOKEN_KEY]: token });
         // Optionally fetch username if needed, or just proceed
       }
     } catch (e) {
@@ -144,7 +144,7 @@ async function handleAuth(type) {
     
     const data = await res.json();
     if (res.ok) {
-      await chrome.storage.local.set({
+      await chrome.storage.sync.set({
         [AUTH_TOKEN_KEY]: data.token,
         [AUTH_USER_KEY]: data.username
       });
@@ -175,7 +175,7 @@ async function handleAuth(type) {
 }
 
 async function handleLogout() {
-  await chrome.storage.local.remove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
+  await chrome.storage.sync.remove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
   try {
     await chrome.cookies.remove({
       url: 'https://bharath-571-utils.muppanenibharath571.workers.dev',
@@ -247,7 +247,7 @@ async function renderTools(filter = '', cloudData = []) {
     div.onclick = () => {
       if (item.type === 'tool') {
         if (INLINE_TOOLS.includes(item.id)) runToolInline(item);
-        else chrome.tabs.create({ url: `https://bharath-571-utils.muppanenibharath571.workers.dev/` });
+        else chrome.tabs.create({ url: `https://bharath-571-utils.muppanenibharath571.workers.dev/#${item.id}` });
       } else if (item.type === 'note') {
         runToolInline(TOOLS.find(t => t.id === 'tile-notepad'));
         setTimeout(() => { 
@@ -256,7 +256,7 @@ async function renderTools(filter = '', cloudData = []) {
         }, 50);
       } else if (item.type === 'history' && item.payload) {
           // Open the specific tool on the website for history restoration
-          chrome.tabs.create({ url: `https://bharath-571-utils.muppanenibharath571.workers.dev/` });
+          chrome.tabs.create({ url: `https://bharath-571-utils.muppanenibharath571.workers.dev/#${item.toolId}` });
       }
     };
     toolListEl.appendChild(div);
@@ -426,7 +426,7 @@ async function saveResult(val) {
   
   // Add new, remove duplicates, keep last 5
   list = [val, ...list.filter(x => x !== val)].slice(0, 5);
-  await chrome.storage.local.set({ [key]: list });
+  await chrome.storage.sync.set({ [key]: list });
 }
 
 async function toggleHistory() {
@@ -437,7 +437,7 @@ async function toggleHistory() {
   }
   
   const key = `hist_${currentToolId}`;
-  const data = await chrome.storage.local.get([key]);
+  const data = await chrome.storage.sync.get([key]);
   const list = data[key] || [];
   
   historyItemsEl.innerHTML = list.length ? '' : '<p style="font-size:0.7rem; padding:0.5rem; color:var(--text-muted);">No recent results</p>';
@@ -476,7 +476,7 @@ async function copyResult() {
 
 async function clearHistory() {
   if (!currentToolId) return;
-  await chrome.storage.local.remove([`hist_${currentToolId}`]);
+  await chrome.storage.sync.remove([`hist_${currentToolId}`]);
   historyPanel.classList.add('hidden');
   showToast('History cleared');
 }

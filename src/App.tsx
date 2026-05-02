@@ -23,7 +23,27 @@ import {
   ColorPicker,
   JwtSandbox,
   CurlConverter,
-  CronGenerator
+  CronGenerator,
+  ImageGenerator,
+  EpochConverter,
+  JsonYamlConverter,
+  RegexTester,
+  MarkdownEditor,
+  MockDataGen,
+  CsvJsonConverter,
+  BinaryHexConverter,
+  FileDetector,
+  MimeLookup,
+  Img2Pdf,
+  QrTool,
+  XmlJsonConverter,
+  CodeMinifier,
+  JsonPathExtractor,
+  HandlebarsBinder,
+  ODataBuilder,
+  QrBatchExport,
+  RestApiClient,
+  CropResize
 } from './components/tools';
 
 const ToolView: React.FC<{ id: string }> = ({ id }) => {
@@ -45,6 +65,26 @@ const ToolView: React.FC<{ id: string }> = ({ id }) => {
     case 'jwt': return <JwtSandbox />;
     case 'curl': return <CurlConverter />;
     case 'cron': return <CronGenerator />;
+    case 'imagegen': return <ImageGenerator />;
+    case 'epoch': return <EpochConverter />;
+    case 'jsonyaml': return <JsonYamlConverter />;
+    case 'regex': return <RegexTester />;
+    case 'markdown': return <MarkdownEditor />;
+    case 'mockdata': return <MockDataGen />;
+    case 'csvjson': return <CsvJsonConverter />;
+    case 'binhex': return <BinaryHexConverter />;
+    case 'filedetector': return <FileDetector />;
+    case 'mimelookup': return <MimeLookup />;
+    case 'img2pdf': return <Img2Pdf />;
+    case 'qr': return <QrTool />;
+    case 'xmljson': return <XmlJsonConverter />;
+    case 'minify': return <CodeMinifier />;
+    case 'jsonpath': return <JsonPathExtractor />;
+    case 'handlebars': return <HandlebarsBinder />;
+    case 'odata': return <ODataBuilder />;
+    case 'qrpdf': return <QrBatchExport />;
+    case 'restapi': return <RestApiClient />;
+    case 'cropresize': return <CropResize />;
     case 'settings': return <SettingsView />;
     default:
       return (

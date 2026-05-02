@@ -7,16 +7,16 @@ const AUTH_USER_KEY = 'bharath_utils_username';
 
 // 🛡️ Robust Auth Storage Utility (Handles Extension & Web Contexts)
 const getAuthToken = async () => {
-  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-    const data = await chrome.storage.local.get([AUTH_TOKEN_KEY]);
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+    const data = await chrome.storage.sync.get([AUTH_TOKEN_KEY]);
     return data[AUTH_TOKEN_KEY];
   }
   return localStorage.getItem(AUTH_TOKEN_KEY);
 };
 
 const setAuthData = async (token, username) => {
-  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-    await chrome.storage.local.set({ [AUTH_TOKEN_KEY]: token, [AUTH_USER_KEY]: username });
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+    await chrome.storage.sync.set({ [AUTH_TOKEN_KEY]: token, [AUTH_USER_KEY]: username });
   } else {
     localStorage.setItem(AUTH_TOKEN_KEY, token);
     localStorage.setItem(AUTH_USER_KEY, username);
@@ -32,6 +32,164 @@ async function authenticatedFetch(url, options = {}) {
   const response = await fetch(absoluteUrl, { ...options, headers });
   if (response.status === 401 && token) handleLogout();
   return response;
+}
+
+/* ====================================================
+   💎 NEXUS CORE ENGINE – Dashboard, Pinned, Recent
+   ==================================================== */
+
+async function getPinnedTools() {
+  try {
+    const data = await chrome.storage.sync.get(['pinnedTools']);
+    return JSON.parse(data.pinnedTools || '[]'); 
+  } catch { return []; }
+}
+
+async function getRecentTools() {
+  try {
+    const data = await chrome.storage.sync.get(['recentTools']);
+    return JSON.parse(data.recentTools || '[]');
+  } catch { return []; }
+}
+
+async function trackRecentTool(toolId) {
+  try {
+    let recents = (await getRecentTools()).filter(id => id !== toolId);
+    recents.unshift(toolId);
+    recents = recents.slice(0, 6);
+    await chrome.storage.sync.set({ recentTools: JSON.stringify(recents) });
+  } catch (e) {}
+}
+
+window.togglePin = async function(e, toolId) {
+  if (e) e.stopPropagation();
+  let pinned = await getPinnedTools();
+  if (pinned.includes(toolId)) {
+    pinned = pinned.filter(id => id !== toolId);
+  } else {
+    pinned.push(toolId);
+  }
+  await chrome.storage.sync.set({ pinnedTools: JSON.stringify(pinned) });
+  buildDashboard(); 
+  if (typeof showToast === 'function') showToast(pinned.includes(toolId) ? 'Tool pinned to top' : 'Tool unpinned', 'success');
+};
+
+window.showTool = function(id) {
+  if (!id) return;
+  window.closeCommandPalette?.();
+
+  // Navigation
+  const dashboard = document.getElementById('view-dashboard');
+  const allToolsContainer = document.getElementById('all-tools');
+  if (dashboard) dashboard.classList.add('hidden');
+  if (allToolsContainer) allToolsContainer.classList.remove('hidden');
+  
+  const allTiles = document.querySelectorAll('.tile');
+  allTiles.forEach(t => t.classList.add('hidden'));
+  
+  const targetTile = document.getElementById(id);
+  if (targetTile) {
+    targetTile.classList.remove('hidden');
+    const title = targetTile.querySelector('h2')?.textContent || 'Tool';
+    document.getElementById('page-title').textContent = title;
+    targetTile.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    document.querySelectorAll('.nav-item').forEach(i => {
+      i.classList.toggle('active', i.dataset.target === id);
+    });
+    
+    trackRecentTool(id);
+  }
+
+  // Piping Hook
+  if (window.isPiping && window.pipingData) {
+    setTimeout(() => {
+      const input = targetTile?.querySelector('textarea, input[type="text"]');
+      if (input) {
+        input.value = window.pipingData;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        showToast('Data piped successfully!', 'success');
+      }
+      window.isPiping = false;
+      window.pipingData = null;
+    }, 450);
+  }
+};
+
+async function buildDashboard() {
+  const toolsGrid  = document.getElementById('tools-grid');
+  const pinnedGrid = document.getElementById('pinned-grid');
+  const pinnedSec  = document.getElementById('pinned-section');
+  if (!toolsGrid) return;
+  
+  toolsGrid.innerHTML = "";
+  if (pinnedGrid) pinnedGrid.innerHTML = "";
+  
+  const pinnedIds = await getPinnedTools();
+  const recentIds = await getRecentTools();
+  const tools = Array.from(document.querySelectorAll('#all-tools .tile'));
+  
+  if (pinnedSec) {
+    pinnedSec.classList.toggle('hidden', pinnedIds.length === 0);
+  }
+
+  // 1. Pinned
+  pinnedIds.forEach(id => {
+    const tool = tools.find(t => t.id === id);
+    if (tool && pinnedGrid) pinnedGrid.appendChild(makeNexusCard(tool, true));
+  });
+
+  // 2. Recent
+  const validRecents = recentIds.filter(id => tools.find(t => t.id === id && !pinnedIds.includes(id)));
+  if (validRecents.length > 0) {
+    const h = document.createElement('div');
+    h.className = "dashboard-section-header";
+    h.innerHTML = `Recently Used <span></span>`;
+    toolsGrid.appendChild(h);
+    
+    const g = document.createElement('div');
+    g.className = "dashboard-grid";
+    g.style.marginBottom = "2rem";
+    validRecents.slice(0, 4).forEach(id => {
+      const tool = tools.find(t => t.id === id);
+      if (tool) g.appendChild(makeNexusCard(tool, false));
+    });
+    toolsGrid.appendChild(g);
+  }
+
+  // 3. All
+  const ah = document.createElement('div');
+  ah.className = "dashboard-section-header";
+  ah.innerHTML = `All Utilities <span></span>`;
+  toolsGrid.appendChild(ah);
+
+  const ag = document.createElement('div');
+  ag.className = "dashboard-grid";
+  tools.forEach(tool => {
+    ag.appendChild(makeNexusCard(tool, pinnedIds.includes(tool.id)));
+  });
+  toolsGrid.appendChild(ag);
+}
+
+function makeNexusCard(tool, isPinned) {
+  const toolId = tool.id;
+  const title = tool.querySelector('h2').textContent;
+  const iconStr = ICON_MAP[toolId] || 'handyman';
+  const desc = tool.dataset.desc || `Access ${title} utility.`;
+
+  const card = document.createElement('div');
+  card.className = "dash-card";
+  card.onclick = () => window.showTool(toolId);
+  card.innerHTML = `
+    <div class="card-glow"></div>
+    <button class="pin-btn ${isPinned ? 'active' : ''}" onclick="window.togglePin(event, '${toolId}')" title="${isPinned ? 'Unpin' : 'Pin to top'}">
+      <span class="material-symbols-outlined" style="font-size:18px;">${isPinned ? 'push_pin' : 'star'}</span>
+    </button>
+    <span class="dash-icon material-symbols-outlined">${iconStr}</span>
+    <h3>${title}</h3>
+    <p>${desc}</p>
+  `;
+  return card;
 }
 
 // 🌐 Unified Search Engine for Cloud Data
@@ -81,8 +239,12 @@ window.handleAuth = async function(type) {
     const data = await res.json();
     if (res.ok) {
       await setAuthData(data.token, data.username);
-      // 🌀 SUCCESS: Black hole suck-in animation then reload
-      triggerBlackHoleAnimation(() => location.reload());
+      // 🌀 SUCCESS: Wormhole Singularity animation then reveal
+      triggerWormholeSingularity(() => {
+        checkAuthState();
+        const overlay = document.getElementById('auth-overlay');
+        if (overlay) overlay.classList.add('hidden');
+      });
     } else {
       // 💥 FAILURE: Bomb explosion animation
       triggerWrongPasswordAnimation();
@@ -174,60 +336,46 @@ function triggerWrongPasswordAnimation() {
 }
 
 /* ====================================================
-   🌀 SUCCESSFUL LOGIN – Black Hole / Suck-In Animation
+   🌀 SUCCESSFUL LOGIN – Wormhole Singularity Animation
    ==================================================== */
-function triggerBlackHoleAnimation(callback) {
+function triggerWormholeSingularity(callback) {
   const card    = document.getElementById('auth-card');
   const overlay = document.getElementById('auth-overlay');
   if (!card || !overlay) { callback(); return; }
 
   // 1) Vortex background shift
-  overlay.classList.add('vortex-bg');
+  overlay.classList.add('wormhole-vortex');
 
-  // 2) Expanding gravitational rings from center
-  const ringsContainer = document.createElement('div');
-  ringsContainer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:99997;';
-  for (let i = 0; i < 3; i++) {
-    const ring = document.createElement('div');
-    ring.className = 'black-hole-ring';
-    ringsContainer.appendChild(ring);
-  }
-  document.body.appendChild(ringsContainer);
+  // 2) Singular Singularity Element
+  const singularity = document.createElement('div');
+  singularity.className = 'wormhole-singularity';
+  document.body.appendChild(singularity);
 
-  // 3) Light rays sucking toward center
-  const rayCount = 12;
-  for (let i = 0; i < rayCount; i++) {
-    const ray = document.createElement('div');
-    ray.className = 'suck-ray';
-    const angle = (360 / rayCount) * i;
-    const dist  = 120 + Math.random() * 200;
-    const rad   = angle * Math.PI / 180;
-    const bx    = window.innerWidth  / 2 + Math.cos(rad) * dist;
-    const by    = window.innerHeight / 2 + Math.sin(rad) * dist;
-    const height = 150 + Math.random() * 100;
-    ray.style.cssText = `
-      left: ${bx}px;
-      top:  ${by - height}px;
-      height: ${height}px;
-      transform: rotate(${angle + 90}deg);
-      animation-delay: ${Math.random() * 0.3}s;
-    `;
-    document.body.appendChild(ray);
-    setTimeout(() => ray.remove(), 1500);
-  }
+  // 3) Warp Stars
+  const starField = document.getElementById('auth-stars');
+  if (starField) starField.classList.add('warping');
 
-  // 4) Card spins and collapses into the black hole center
-  card.classList.add('sucking');
+  // 4) Card spins and collapses into the wormhole center
+  card.classList.add('wormhole-suck');
 
-  // 5) After animation completes, run callback
+  // 5) Flash and Reveal
   setTimeout(() => {
-    ringsContainer.remove();
-    callback();
-  }, 1200);
+    const flash = document.createElement('div');
+    flash.className = 'wormhole-flash';
+    document.body.appendChild(flash);
+    
+    setTimeout(() => {
+      singularity.remove();
+      flash.remove();
+      if (starField) starField.classList.remove('warping');
+      overlay.classList.remove('wormhole-vortex');
+      callback();
+    }, 600);
+  }, 1100);
 }
 
 window.handleLogout = async function() {
-  await chrome.storage.local.remove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
+  await chrome.storage.sync.remove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
   location.reload();
 };
 
@@ -240,7 +388,7 @@ window.closeAuthModal = function() {
 };
 
 async function checkAuthState() {
-  const data = await chrome.storage.local.get([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
+  const data = await chrome.storage.sync.get([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
   const token = data[AUTH_TOKEN_KEY];
   const username = data[AUTH_USER_KEY];
   const overlay = document.getElementById('auth-overlay');
@@ -285,7 +433,7 @@ document.addEventListener('click', (e) => {
 });
 
 window.openProfileModal = async function() {
-  const data = await chrome.storage.local.get([AUTH_USER_KEY]);
+  const data = await chrome.storage.sync.get([AUTH_USER_KEY]);
   const username = data[AUTH_USER_KEY];
   if (!username) return;
   document.getElementById('profile-username').value = username;
@@ -599,7 +747,7 @@ window.openModeSelector = async function() {
   overlay.classList.remove('hidden');
   const pop = document.getElementById('profile-popover');
   if (pop) { pop.classList.add('hidden'); pop.style.display = 'none'; }
-  const data = await chrome.storage.local.get(['appMode']);
+  const data = await chrome.storage.sync.get(['appMode']);
   const cur = data.appMode || 'dark';
   ALL_MODES.forEach(m => {
     const btn = document.getElementById('mode-btn-' + m);
@@ -619,7 +767,7 @@ document.getElementById('mode-picker-overlay')?.addEventListener('click', functi
 window.applyMode = async function(mode) {
   document.body.classList.remove(...ALL_MODES.map(m => m + '-mode'));
   if (mode !== 'dark') document.body.classList.add(mode + '-mode');
-  await chrome.storage.local.set({ appMode: mode });
+  await chrome.storage.sync.set({ appMode: mode });
   ALL_MODES.forEach(m => {
     const btn = document.getElementById('mode-btn-' + m);
     if (btn) btn.classList.toggle('active-mode', m === mode);
@@ -637,18 +785,225 @@ window.applyMode = async function(mode) {
 // Legacy alias
 window.toggleTheme = window.openModeSelector;
 
+const ICON_MAP = {
+  'tile-notepad': 'edit_note',
+  'tile-url': 'link',
+  'tile-b64text': 'key',
+  'tile-b64file': 'attach_file',
+  'tile-image': 'image',
+  'tile-formatter': 'auto_fix_high',
+  'tile-img2pdf': 'picture_as_pdf',
+  'tile-qr': 'qr_code_2',
+  'tile-hash': 'tag',
+  'tile-minify': 'compress',
+  'tile-pwd': 'password',
+  'tile-csvjson': 'sync_alt',
+  'tile-urlshort': 'short_text',
+  'tile-imgopt': 'photo_size_select_large',
+  'tile-detect': 'description',
+  'tile-entity': 'terminal',
+  'tile-datetime': 'schedule',
+  'tile-mime': 'category',
+  'tile-hex': 'hex',
+  'tile-colour': 'palette',
+  'tile-qrpdf': 'picture_as_pdf',
+  'tile-strconvert': 'text_fields',
+  'tile-cropresize': 'crop',
+  'tile-xmljson': 'swap_horiz',
+  'tile-jsonpath': 'troubleshoot',
+  'tile-handlebar': 'view_stream',
+  'tile-restapi': 'api',
+  'tile-odata': 'database',
+  'tile-jwt': 'vpn_key',
+  'tile-curl': 'terminal',
+  'tile-cron': 'calendar_month',
+  'tile-markdown': 'edit_document',
+  'tile-mockdata': 'table_view',
+  'tile-imagegen': 'image_search',
+  'tile-epoch': 'schedule',
+  'tile-jsonyaml': 'sync_alt',
+  'tile-regex': 'search',
+  'tile-unit': 'straighten'
+};
+
+const ALL_TOOLS_LIST = [
+  { id: 'tile-notepad', name: 'Notepad', icon: 'edit_note' },
+  { id: 'tile-url', name: 'URL Encode/Decode', icon: 'link' },
+  { id: 'tile-b64text', name: 'Base64 Text', icon: 'key' },
+  { id: 'tile-b64file', name: 'Base64 File', icon: 'attach_file' },
+  { id: 'tile-image', name: 'Image ↔ Base64', icon: 'image' },
+  { id: 'tile-formatter', name: 'Code Formatter', icon: 'auto_fix_high' },
+  { id: 'tile-img2pdf', name: 'Images to PDF', icon: 'picture_as_pdf' },
+  { id: 'tile-qr', name: 'QR Code Gen/Scan', icon: 'qr_code_2' },
+  { id: 'tile-hash', name: 'Hash Calculator', icon: 'tag' },
+  { id: 'tile-minify', name: 'Code Minifier', icon: 'compress' },
+  { id: 'tile-pwd', name: 'Password Generator', icon: 'password' },
+  { id: 'tile-csvjson', name: 'CSV ↔ JSON', icon: 'sync_alt' },
+  { id: 'tile-urlshort', name: 'URL Shortener', icon: 'short_text' },
+  { id: 'tile-imgopt', name: 'Image Optimizer', icon: 'photo_size_select_large' },
+  { id: 'tile-detect', name: 'File Type Detector', icon: 'description' },
+  { id: 'tile-entity', name: 'Unicode ↔ HTML', icon: 'terminal' },
+  { id: 'tile-datetime', name: 'Date-Time Formatter', icon: 'schedule' },
+  { id: 'tile-mime', name: 'MIME-type Lookup', icon: 'category' },
+  { id: 'tile-hex', name: 'Binary ↔ Hex', icon: 'hex' },
+  { id: 'tile-colour', name: 'Colour Picker', icon: 'palette' },
+  { id: 'tile-qrpdf', name: 'QR Batch Export', icon: 'picture_as_pdf' },
+  { id: 'tile-strconvert', name: 'Text Case Converter', icon: 'text_fields' },
+  { id: 'tile-cropresize', name: 'Crop & Resize', icon: 'crop' },
+  { id: 'tile-xmljson', name: 'XML ↔ JSON', icon: 'swap_horiz' },
+  { id: 'tile-jsonpath', name: 'JSONPath Extractor', icon: 'troubleshoot' },
+  { id: 'tile-handlebar', name: 'Handlebars Binder', icon: 'view_stream' },
+  { id: 'tile-restapi', name: 'REST API Client', icon: 'api' },
+  { id: 'tile-odata', name: 'OData Builder', icon: 'database' },
+  { id: 'tile-jwt', name: 'JWT Sandbox', icon: 'vpn_key' },
+  { id: 'tile-curl', name: 'cURL Converter', icon: 'terminal' },
+  { id: 'tile-cron', name: 'Cron Generator', icon: 'calendar_month' },
+  { id: 'tile-markdown', name: 'Markdown Editor', icon: 'edit_document' },
+  { id: 'tile-mockdata', name: 'Mock Data Gen', icon: 'table_view' },
+  { id: 'tile-imagegen', name: 'AI Image Gen', icon: 'image_search' },
+  { id: 'tile-epoch', name: 'Epoch Converter', icon: 'schedule' },
+  { id: 'tile-jsonyaml', name: 'JSON ↔ YAML', icon: 'sync_alt' },
+  { id: 'tile-regex', name: 'RegEx Tester', icon: 'search' },
+  { id: 'tile-unit', name: 'Pro Unit Converter', icon: 'straighten' }
+];
+
+async function checkContextSelection() {
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    const data = await chrome.storage.local.get(['contextSelection']);
+    if (data.contextSelection) {
+      const activeTool = document.querySelector('.tile:not(.hidden)');
+      const input = activeTool?.querySelector('textarea, input[type="text"]');
+      if (input) {
+        input.value = data.contextSelection;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        showToast('Selection imported from context menu!', 'success');
+      }
+      await chrome.storage.local.remove(['contextSelection']);
+    }
+  }
+}
+
+/* ====================================================
+   🛠️ NEW TOOL LOGIC – JWT, Epoch, YAML, RegEx, Unit
+   ==================================================== */
+function initNewTools() {
+  // JWT Debugger
+  const jwtInput = document.getElementById('jwtInput');
+  if (jwtInput) {
+    jwtInput.addEventListener('input', () => {
+      const val = jwtInput.value.trim();
+      const parts = val.split('.');
+      if (parts.length >= 2) {
+        try {
+          const header = JSON.parse(atob(parts[0]));
+          const payload = JSON.parse(atob(parts[1]));
+          document.querySelector('#jwtHeader .result').textContent = JSON.stringify(header, null, 2);
+          document.querySelector('#jwtPayload .result').textContent = JSON.stringify(payload, null, 2);
+        } catch (e) {
+          document.querySelector('#jwtHeader .result').textContent = 'Invalid JWT parts';
+        }
+      }
+    });
+  }
+
+  // Epoch Converter
+  document.getElementById('btnEpochToDate')?.addEventListener('click', () => {
+    let val = document.getElementById('epochInput').value.trim();
+    if (!val) return;
+    let num = parseInt(val);
+    if (val.length <= 10) num *= 1000;
+    const date = new Date(num);
+    document.querySelector('#epochResult .result').textContent = date.toString() + '\n' + date.toISOString();
+  });
+
+  document.getElementById('btnDateToEpoch')?.addEventListener('click', () => {
+    const val = document.getElementById('dateInput').value;
+    if (!val) return;
+    const epoch = Math.floor(new Date(val).getTime() / 1000);
+    document.querySelector('#epochResult .result').textContent = `Unix: ${epoch}\nMS: ${epoch * 1000}`;
+  });
+
+  // JSON <> YAML
+  document.getElementById('btnJsonToYaml')?.addEventListener('click', () => {
+    try {
+      const obj = JSON.parse(document.getElementById('jyInput').value);
+      document.querySelector('#jyResult .result').textContent = jsyaml.dump(obj);
+    } catch (e) { showToast('Invalid JSON', 'error'); }
+  });
+  document.getElementById('btnYamlToJson')?.addEventListener('click', () => {
+    try {
+      const obj = jsyaml.load(document.getElementById('jyInput').value);
+      document.querySelector('#jyResult .result').textContent = JSON.stringify(obj, null, 2);
+    } catch (e) { showToast('Invalid YAML', 'error'); }
+  });
+
+  // RegEx Tester
+  document.getElementById('btnTestRegex')?.addEventListener('click', () => {
+    const pattern = document.getElementById('rePattern').value;
+    const flags = document.getElementById('reFlags').value;
+    const input = document.getElementById('reInput').value;
+    try {
+      const re = new RegExp(pattern, flags);
+      const matches = [...input.matchAll(re)];
+      document.querySelector('#reResult .result').textContent = matches.length > 0 ? 
+        matches.map(m => `Match: "${m[0]}" at index ${m.index}`).join('\n') : 'No matches found';
+    } catch (e) { showToast('Invalid RegEx', 'error'); }
+  });
+
+  // Pro Unit Converter
+  const unitMap = {
+    length: { km: 1000, m: 1, mi: 1609.34, ft: 0.3048 },
+    weight: { kg: 1, g: 0.001, lb: 0.453592, oz: 0.0283495 },
+    data: { GB: 1073741824, MB: 1048576, KB: 1024, B: 1 }
+  };
+  const unitType = document.getElementById('unitType');
+  const unitFrom = document.getElementById('unitFromType');
+  const unitTo = document.getElementById('unitToType');
+  
+  const updateUnitSelectors = () => {
+    const type = unitType.value;
+    if (type === 'temp') {
+      unitFrom.innerHTML = '<option value="C">C</option><option value="F">F</option><option value="K">K</option>';
+      unitTo.innerHTML = unitFrom.innerHTML;
+      return;
+    }
+    const options = Object.keys(unitMap[type]).map(u => `<option value="${u}">${u}</option>`).join('');
+    unitFrom.innerHTML = options;
+    unitTo.innerHTML = options;
+  };
+  unitType?.addEventListener('change', updateUnitSelectors);
+  updateUnitSelectors();
+
+  document.getElementById('btnConvertUnit')?.addEventListener('click', () => {
+    const val = parseFloat(document.getElementById('unitFromVal').value);
+    const type = unitType.value;
+    const from = unitFrom.value;
+    const to = unitTo.value;
+    let res = 0;
+    if (type === 'temp') {
+      let c = from === 'C' ? val : (from === 'F' ? (val - 32) * 5/9 : (val - 273.15));
+      res = to === 'C' ? c : (to === 'F' ? (c * 9/5) + 32 : (c + 273.15));
+    } else {
+      res = (val * unitMap[type][from]) / unitMap[type][to];
+    }
+    document.querySelector('#unitResult .result').textContent = `${val} ${from} = ${res.toFixed(4)} ${to}`;
+  });
+}
+
 // Initial check when script loads
 (async function init() {
   await initAuthOverlay();
   const loggedIn = await checkAuthState();
+  initNewTools();
   
   if (loggedIn) {
-    // Handle deep linking at the very end when all functions are defined
+    // Handle deep linking
     const toolId = window.location.hash.substring(1);
     if (toolId && toolId.startsWith('tile-')) {
       setTimeout(() => {
         if (typeof window.showTool === 'function') {
           window.showTool(toolId);
+          checkContextSelection();
         }
       }, 300);
     }
@@ -682,7 +1037,7 @@ async function initAuthOverlay() {
 
   // Give the app-container a reveal class after token-based login
   const appContainer = document.querySelector('.app-container');
-  const data = await chrome.storage.local.get([AUTH_TOKEN_KEY]);
+  const data = await chrome.storage.sync.get([AUTH_TOKEN_KEY]);
   if (appContainer && data[AUTH_TOKEN_KEY]) {
     appContainer.classList.add('page-reveal');
     setTimeout(() => appContainer.classList.remove('page-reveal'), 700);
@@ -691,7 +1046,7 @@ async function initAuthOverlay() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Restore saved mode on load
-  const data = await chrome.storage.local.get(['appMode', 'theme']);
+  const data = await chrome.storage.sync.get(['appMode', 'theme']);
   const savedMode = data.appMode || data.theme || 'dark';
   const normalizedMode = savedMode === 'light' ? 'light' : (ALL_MODES.includes(savedMode) ? savedMode : 'dark');
   if (normalizedMode !== 'dark') document.body.classList.add(normalizedMode + '-mode');
@@ -705,103 +1060,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const tools = Array.from(document.querySelectorAll('.tile'));
   const sidebarNav = document.getElementById('sidebar-nav');
-  const dashboardGrid = document.getElementById('view-dashboard');
-
-  const iconMap = {
-    'tile-base64': 'key',
-    'tile-urlencode': 'link',
-    'tile-htmlencode': 'code_blocks',
-    'tile-strconvert': 'text_fields',
-    'tile-timestamp': 'schedule',
-    'tile-diff': 'difference',
-    'tile-color': 'palette',
-    'tile-lorem': 'format_align_left',
-    'tile-crop': 'crop',
-    'tile-pwdgen': 'password',
-    'tile-regex': 'search',
-    'tile-jsonview': 'data_object',
-    'tile-beautify': 'auto_fix_high',
-    'tile-hash': 'tag',
-    'tile-csv2json': 'sync_alt',
-    'tile-uuid': 'fingerprint',
-    'tile-qrgen': 'qr_code_2',
-    'tile-qrread': 'document_scanner',
-    'tile-exif': 'image_search',
-    'tile-filetype': 'description',
-    'tile-unit': 'straighten',
-    'tile-notepad': 'edit_note',
-    'tile-pdf': 'picture_as_pdf',
-    'tile-xmljson': 'swap_horiz',
-    'tile-jsonpath': 'troubleshoot',
-    'tile-handlebar': 'view_stream',
-    'tile-restapi': 'api',
-    'tile-odata': 'database',
-    'tile-jwt': 'vpn_key',
-    'tile-curl': 'terminal',
-    'tile-cron': 'calendar_month',
-    'tile-markdown': 'edit_document',
-    'tile-mockdata': 'table',
-    'tile-imagegen': 'image_search'
-  };
-
-  // Build dashboard with sections (Pinned, Recent, All)
-  async function buildDashboard() {
-    dashboardGrid.innerHTML = '';
-    const pinnedIds = await getPinnedTools();
-    const recentIds = await getRecentTools();
-
-    // ---- Pinned section ----
-    if (pinnedIds.length > 0) {
-      const pinnedTitle = document.createElement('div');
-      pinnedTitle.className = 'dash-section-title';
-      pinnedTitle.innerHTML = '<span class="material-symbols-outlined">push_pin</span> Pinned Tools';
-      dashboardGrid.appendChild(pinnedTitle);
-
-      pinnedIds.forEach(toolId => {
-        const tool = tools.find(t => t.id === toolId);
-        if (tool) dashboardGrid.appendChild(makeCard(tool, true, pinnedIds));
-      });
-    }
-
-  // Global buildDashboard and togglePin functions are now defined outside for the Nexus Engine
-
-  async function getPinnedTools() {
-    try {
-      const res = await authenticatedFetch('/api/prefs?key=pinnedTools');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.value) return JSON.parse(data.value);
-      }
-    } catch (e) {}
-    try { 
-      const data = await chrome.storage.local.get(['pinnedTools']);
-      return JSON.parse(data.pinnedTools || '[]'); 
-    } catch { return []; }
-  }
-
-  async function getRecentTools() {
-    try {
-      const data = await chrome.storage.local.get(['recentTools']);
-      return JSON.parse(data.recentTools || '[]');
-    } catch { return []; }
-  }
-
-  async function trackRecentTool(toolId) {
-    let recents = (await getRecentTools()).filter(id => id !== toolId);
-    recents.unshift(toolId);
-    recents = recents.slice(0, 6);
-    await authenticatedFetch('/api/prefs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: 'recentTools', value: JSON.stringify(recents) })
-    });
-    await chrome.storage.local.set({ recentTools: JSON.stringify(recents) });
-  }
-
+  if (sidebarNav) sidebarNav.innerHTML = ''; // Clear first
+  
   tools.forEach(tool => {
     const title   = tool.querySelector('h2').textContent;
     const toolId  = tool.id;
-    const iconStr = iconMap[toolId] || 'handyman';
+    const iconStr = ICON_MAP[toolId] || 'handyman';
 
     // Build sidebar link
     const link = document.createElement('a');
@@ -810,20 +1074,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     link.dataset.target = toolId;
     link.onclick = (e) => { 
       e.preventDefault(); 
-      showTool(toolId); 
+      window.showTool(toolId); 
       if (window.innerWidth <= 768) {
-        document.getElementById('sidebar').classList.remove('mobile-open');
+        document.getElementById('sidebar')?.classList.remove('mobile-open');
         const bd = document.getElementById('mobile-backdrop');
         if (bd) bd.classList.remove('active');
       }
     };
     link.dataset.tooltip = title;
     link.innerHTML = `<span class="nav-icon material-symbols-outlined">${iconStr}</span> <span class="nav-text">${title}</span>`;
-    sidebarNav.appendChild(link);
+    sidebarNav?.appendChild(link);
     
     // Also build a simple searchable index for the command palette
     window._toolIndex = window._toolIndex || [];
-    window._toolIndex.push({ id: toolId, title, icon: iconStr });
+    if (!window._toolIndex.find(t => t.id === toolId)) {
+       window._toolIndex.push({ id: toolId, title, icon: iconStr });
+    }
   });
 
   // Build initial dashboard (Global Nexus Engine)
@@ -3054,118 +3320,127 @@ async function renderCommandResults(query) {
           const toolId = item.toolId || ('tile-' + item.title);
           window.showTool(toolId);
           setTimeout(() => { if(typeof restoreToolState === 'function') restoreToolState(toolId, payload); }, 150);
-        } catch(e) {}
-      } else if (item.action) {
-        item.action();
-      } else if (item.id) {
-        window.showTool(item.id);
-      }
+   🔗 TOOL PIPING – Pass data between tools
+   ==================================================== */
+function setupPiping() {
+  const outputContainers = document.querySelectorAll('.output');
+  outputContainers.forEach(container => {
+    if (container.querySelector('.pipe-btn')) return;
+    
+    const pipeBtn = document.createElement('button');
+    pipeBtn.className = 'pipe-btn';
+    pipeBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">shortcut</span> Pipe';
+    pipeBtn.onclick = () => {
+      const resultEl = container.querySelector('.result');
+      if (!resultEl) return;
+      const resultText = resultEl.innerText || resultEl.textContent;
+      if (!resultText || resultText === 'Ready.') { showToast('No data to pipe', 'error'); return; }
+      openPipingModal(resultText);
     };
-    container.appendChild(el);
+    
+    const copyBtn = container.querySelector('.copyBtn');
+    if (copyBtn) copyBtn.after(pipeBtn);
+    else container.prepend(pipeBtn);
   });
 }
 
-// ----------------------------------------------------------------------------
-// Dashboard Enhancement: Sections & Pinning
-// ----------------------------------------------------------------------------
+function openPipingModal(data) {
+  const palette = document.getElementById('command-palette');
+  const input = document.getElementById('cmd-input');
+  if (!palette || !input) return;
+  palette.classList.add('open');
+  input.value = '';
+  input.placeholder = 'Pipe data to which tool?';
+  input.focus();
+  window.pipingData = data;
+  window.isPiping = true;
+  renderCmdResults('');
+}
 
-window.togglePin = async function(e, toolId) {
-  if (e) e.stopPropagation();
-  let pinned = await getPinnedTools();
-  if (pinned.includes(toolId)) {
-    pinned = pinned.filter(id => id !== toolId);
-  } else {
-    pinned.push(toolId);
+/* ====================================================
+   ⌨️ COMMAND PALETTE – Quick Access (Ctrl+K)
+   ==================================================== */
+let cmdSelectedIndex = 0;
+let filteredCmds = [];
+
+window.toggleCommandPalette = function(forceClose = false) {
+  const palette = document.getElementById('command-palette');
+  const input = document.getElementById('cmd-input');
+  if (!palette || !input) return;
+  
+  if (forceClose || palette.classList.contains('open')) {
+    palette.classList.remove('open');
+    window.isPiping = false;
+    return;
+  }
+  palette.classList.add('open');
+  input.value = '';
+  input.placeholder = 'Search tools or commands...';
+  input.focus();
+  renderCmdResults('');
+}
+
+window.closeCommandPalette = function() {
+  window.toggleCommandPalette(true);
+}
+
+function renderCmdResults(query) {
+  const resultsEl = document.getElementById('cmd-results');
+  if (!resultsEl) return;
+  resultsEl.innerHTML = '';
+  
+  filteredCmds = ALL_TOOLS_LIST.filter(t => t.name.toLowerCase().includes(query.toLowerCase()));
+  
+  if (filteredCmds.length === 0) {
+    resultsEl.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-muted);">No tools found</div>';
+    return;
   }
   
-  await chrome.storage.local.set({ pinnedTools: JSON.stringify(pinned) });
-  // Try to sync to D1 as well if active
-  await authenticatedFetch('/api/prefs', {
-     method: 'POST',
-     headers: { 'Content-Type': 'application/json' },
-     body: JSON.stringify({ key: 'pinnedTools', value: JSON.stringify(pinned) })
-  }).catch(() => {});
-  
-  buildDashboard(); // Re-render
-  if (typeof showToast === 'function') showToast(pinned.includes(toolId) ? 'Tool pinned to top' : 'Tool unpinned', 'success');
-};
+  filteredCmds.forEach((cmd, index) => {
+    const div = document.createElement('div');
+    div.className = `cmd-item ${index === cmdSelectedIndex ? 'selected' : ''}`;
+    div.innerHTML = `
+      <span class="material-symbols-outlined">${cmd.icon}</span>
+      <div style="flex:1;">
+        <div class="cmd-name">${cmd.name}</div>
+        <div style="font-size:0.7rem; color:var(--text-muted);">${cmd.id.replace('tile-', '')}</div>
+      </div>
+      <span class="cmd-hint">Enter</span>
+    `;
+    div.onclick = () => {
+      window.showTool(cmd.id);
+      window.toggleCommandPalette(true);
+    };
+    resultsEl.appendChild(div);
+  });
+}
 
-async function buildDashboard() {
-  const toolsGrid  = document.getElementById('tools-grid');
-  const pinnedGrid = document.getElementById('pinned-grid');
-  const pinnedSec  = document.getElementById('pinned-section');
-  if (!toolsGrid) return;
-  
-  toolsGrid.innerHTML = "";
-  if (pinnedGrid) pinnedGrid.innerHTML = "";
+document.getElementById('cmd-input')?.addEventListener('input', (e) => {
+  cmdSelectedIndex = 0;
+  renderCmdResults(e.target.value);
+});
 
-  const pinnedIds = await getPinnedTools();
-  const recentIds = await getRecentTools();
-  const tools = Array.from(document.querySelectorAll('#all-tools .tile'));
-  
-  if (pinnedSec) {
-    pinnedSec.classList.toggle('hidden', pinnedIds.length === 0);
-  }
-
-  // 1. Render Pinned Tools
-  pinnedIds.forEach(id => {
-    const tool = tools.find(t => t.id === id);
-    if (tool && pinnedGrid) {
-      pinnedGrid.appendChild(makeNexusCard(tool, true));
+document.getElementById('cmd-input')?.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    cmdSelectedIndex = (cmdSelectedIndex + 1) % filteredCmds.length;
+    renderCmdResults(e.target.value);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    cmdSelectedIndex = (cmdSelectedIndex - 1 + filteredCmds.length) % filteredCmds.length;
+    renderCmdResults(e.target.value);
+  } else if (e.key === 'Enter') {
+    if (filteredCmds[cmdSelectedIndex]) {
+      window.showTool(filteredCmds[cmdSelectedIndex].id);
+      window.toggleCommandPalette(true);
     }
-  });
-
-  // 2. Render Recently Used (Optional Section)
-  const validRecents = recentIds.filter(id => tools.find(t => t.id === id && !pinnedIds.includes(id)));
-  if (validRecents.length > 0) {
-    const recentHeader = document.createElement('div');
-    recentHeader.className = "dashboard-section-header";
-    recentHeader.innerHTML = `Recently Used <span></span>`;
-    toolsGrid.appendChild(recentHeader);
-    
-    const recentGrid = document.createElement('div');
-    recentGrid.className = "dashboard-grid";
-    recentGrid.style.marginBottom = "2rem";
-    
-    validRecents.slice(0, 4).forEach(id => {
-      const tool = tools.find(t => t.id === id);
-      if (tool) recentGrid.appendChild(makeNexusCard(tool, false));
-    });
-    toolsGrid.appendChild(recentGrid);
   }
+});
 
-  // 3. Render All Tools
-  const allHeader = document.createElement('div');
-  allHeader.className = "dashboard-section-header";
-  allHeader.innerHTML = `All Utilities <span></span>`;
-  toolsGrid.appendChild(allHeader);
+document.getElementById('command-palette')?.addEventListener('click', (e) => {
+  if (e.target.id === 'command-palette') window.toggleCommandPalette(true);
+});
 
-  const allGrid = document.createElement('div');
-  allGrid.className = "dashboard-grid";
-  tools.forEach(tool => {
-    allGrid.appendChild(makeNexusCard(tool, pinnedIds.includes(tool.id)));
-  });
-  toolsGrid.appendChild(allGrid);
-}
-
-function makeNexusCard(tool, isPinned) {
-  const toolId = tool.id;
-  const title = tool.querySelector('h2').textContent;
-  const iconStr = iconMap[toolId] || 'handyman';
-  const desc = tool.dataset.desc || `Quick access to the ${title} processing tool.`;
-
-  const card = document.createElement('div');
-  card.className = "dash-card";
-  card.onclick = () => window.showTool(toolId);
-  card.innerHTML = `
-    <div class="card-glow"></div>
-    <button class="pin-btn ${isPinned ? 'active' : ''}" onclick="window.togglePin(event, '${toolId}')" title="${isPinned ? 'Unpin' : 'Pin to top'}">
-      <span class="material-symbols-outlined" style="font-size:18px;">${isPinned ? 'push_pin' : 'star'}</span>
-    </button>
-    <span class="dash-icon material-symbols-outlined">${iconStr}</span>
-    <h3>${title}</h3>
-    <p>${desc}</p>
-  `;
-  return card;
-}
+// Run piping setup periodically
+setInterval(setupPiping, 2000);
 
