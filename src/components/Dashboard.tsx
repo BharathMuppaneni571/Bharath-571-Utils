@@ -75,6 +75,7 @@ const tools: Tool[] = [
   { id: 'qrpdf', name: 'QR Batch Export', icon: FileText, desc: 'Export QR batch as PDF.', color: 'from-emerald-500/20 to-teal-500/20' },
   { id: 'restapi', name: 'REST Client', icon: Globe, desc: 'Lightweight API testing.', color: 'from-fuchsia-500/20 to-purple-500/20' },
   { id: 'cropresize', name: 'Image Resize', icon: Maximize, desc: 'Scale images to pixels.', color: 'from-slate-500/20 to-blue-500/20' },
+  { id: 'url', name: 'URL Encoder', icon: Link2, desc: 'Safe URL encode/decode.', color: 'from-blue-400/20 to-indigo-400/20' },
 ];
 
 const Dashboard: React.FC = () => {

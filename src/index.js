@@ -16,11 +16,16 @@ export default {
       if (url.pathname.startsWith('/api/')) {
         return await handleApiRequest(request, env, url, corsHeaders);
       }
-      return env.ASSETS.fetch(request);
+      
+      // Fallback to static assets
+      return await env.ASSETS.fetch(request);
     } catch (error) {
-      console.error(error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
+      console.error('Worker Error:', error);
+      return new Response(JSON.stringify({ 
+        error: error.message,
+        stack: env.DEV ? error.stack : undefined 
+      }), {
+        status: error.status || 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
     }
@@ -32,7 +37,9 @@ async function handleApiRequest(request, env, url, headers) {
 
   // ------------ AUTH ENDPOINTS ------------
   if (url.pathname === '/api/auth/register' && method === 'POST') {
-    const { username, password } = await request.json();
+    let body;
+    try { body = await request.json(); } catch(e) { return errorResponse(400, 'Invalid JSON body', headers); }
+    const { username, password } = body;
     if (!username || !password) return errorResponse(400, 'Username and password required', headers);
 
     const existingUser = await env.DB.prepare('SELECT id FROM users WHERE username = ?').bind(username).first();
@@ -53,7 +60,9 @@ async function handleApiRequest(request, env, url, headers) {
   }
 
   if (url.pathname === '/api/auth/login' && method === 'POST') {
-    const { username, password } = await request.json();
+    let body;
+    try { body = await request.json(); } catch(e) { return errorResponse(400, 'Invalid JSON body', headers); }
+    const { username, password } = body;
     if (!username || !password) return errorResponse(400, 'Username and password required', headers);
 
     const user = await env.DB.prepare('SELECT id, password_hash FROM users WHERE username = ?').bind(username).first();
@@ -387,10 +396,10 @@ async function authenticate(request, env) {
   return await verifyJWT(token, env.JWT_SECRET || 'fallback_secret');
 }
 
-function jsonResponse(data, headers) {
+function jsonResponse(data, headers = {}) {
   return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json', ...headers } });
 }
 
-function errorResponse(status, message, headers) {
+function errorResponse(status, message, headers = {}) {
   return new Response(JSON.stringify({ error: message }), { status, headers: { 'Content-Type': 'application/json', ...headers } });
 }

@@ -43,7 +43,8 @@ import {
   ODataBuilder,
   QrBatchExport,
   RestApiClient,
-  CropResize
+  CropResize,
+  UrlEncoder
 } from './components/tools';
 
 const ToolView: React.FC<{ id: string }> = ({ id }) => {
@@ -85,6 +86,7 @@ const ToolView: React.FC<{ id: string }> = ({ id }) => {
     case 'qrpdf': return <QrBatchExport />;
     case 'restapi': return <RestApiClient />;
     case 'cropresize': return <CropResize />;
+    case 'url': return <UrlEncoder />;
     case 'settings': return <SettingsView />;
     default:
       return (
@@ -121,7 +123,7 @@ function App() {
         const { Storage } = await import('./lib/api');
         await Storage.set('bharath_utils_auth_token', token);
         await Storage.set('bharath_utils_username', user);
-        window.history.replaceState({}, document.title, "/");
+        window.history.replaceState({}, document.title, "/" + window.location.hash);
         checkAuth();
       };
       handleOAuth();
@@ -137,6 +139,37 @@ function App() {
       setIsExtension(true);
     }
   }, [checkAuth, loadTheme, loadPinnedTools]);
+
+  // Deep linking handler
+  useEffect(() => {
+    const TOOL_MAPPING: Record<string, string> = {
+      'b64text': 'base64',
+      'pwd': 'password',
+      'urlshort': 'url-shortener',
+      'detect': 'filedetector',
+      'mime': 'mimelookup',
+      'hex': 'binhex',
+      'colour': 'color',
+      'strconvert': 'case',
+      'handlebar': 'handlebars'
+    };
+
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        let webId = hash.replace('tile-', '');
+        if (TOOL_MAPPING[webId]) {
+          webId = TOOL_MAPPING[webId];
+        }
+        setActiveTool(webId as any);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHash);
+    handleHash(); // Handle initial hash
+
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, [setActiveTool]);
 
   return (
     <div className={`relative ${isExtension ? 'h-[600px] w-[800px] overflow-hidden' : 'min-h-screen'}`}>

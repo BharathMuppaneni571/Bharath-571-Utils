@@ -1,5 +1,6 @@
 // REPLACE THIS URL with your production Cloudflare Worker URL
 const API_BASE_URL = 'https://bharath-571-utils.muppanenibharath571.workers.dev'; 
+const DASHBOARD_URL = 'https://bharath-571-utils.muppanenibharath571.workers.dev/'; // Change this to your frontend URL
 
 const AUTH_TOKEN_KEY = 'bharath_utils_auth_token';
 const AUTH_USER_KEY = 'bharath_utils_username';
@@ -247,7 +248,7 @@ async function renderTools(filter = '', cloudData = []) {
     div.onclick = () => {
       if (item.type === 'tool') {
         if (INLINE_TOOLS.includes(item.id)) runToolInline(item);
-        else chrome.tabs.create({ url: `https://bharath-571-utils.muppanenibharath571.workers.dev/#${item.id}` });
+        else chrome.tabs.create({ url: `${DASHBOARD_URL}#${item.id}` });
       } else if (item.type === 'note') {
         runToolInline(TOOLS.find(t => t.id === 'tile-notepad'));
         setTimeout(() => { 
@@ -256,7 +257,7 @@ async function renderTools(filter = '', cloudData = []) {
         }, 50);
       } else if (item.type === 'history' && item.payload) {
           // Open the specific tool on the website for history restoration
-          chrome.tabs.create({ url: `https://bharath-571-utils.muppanenibharath571.workers.dev/#${item.toolId}` });
+          chrome.tabs.create({ url: `${DASHBOARD_URL}#${item.toolId}` });
       }
     };
     toolListEl.appendChild(div);

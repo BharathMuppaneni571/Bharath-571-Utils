@@ -88,13 +88,13 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const baseUrl = "https://bharath-571-utils.muppanenibharath571.workers.dev/";
+  const DASHBOARD_URL = "https://bharath-571-utils.muppanenibharath571.workers.dev/";
   
   if (info.menuItemId === "open-dashboard") {
-    chrome.tabs.create({ url: baseUrl });
+    chrome.tabs.create({ url: DASHBOARD_URL });
   } else if (info.selectionText) {
     // Open specific tool with selection as hash/query
-    const toolUrl = `${baseUrl}#${info.menuItemId}`;
+    const toolUrl = `${DASHBOARD_URL}#${info.menuItemId}`;
     // We'll store the selection in session storage or similar if we want the tool to auto-load it
     // For now, let's just open the tool. 
     // Optimization: we could use chrome.storage.local to pass the "q" param.

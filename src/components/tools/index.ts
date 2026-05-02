@@ -33,3 +33,4 @@ export { default as ODataBuilder } from './ODataBuilder';
 export { default as QrBatchExport } from './QrBatchExport';
 export { default as RestApiClient } from './RestApiClient';
 export { default as CropResize } from './CropResize';
+export { default as UrlEncoder } from './UrlEncoder';

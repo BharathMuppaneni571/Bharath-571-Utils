@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Storage, authenticatedFetch } from '../lib/api';
 
-export type ToolId = 'dashboard' | 'json' | 'base64' | 'imgopt' | 'hash' | 'unit' | 'case' | 'entity' | 'notepad' | 'password' | 'url-shortener' | 'datetime' | 'color' | 'jwt' | 'curl' | 'cron' | 'settings';
+export type ToolId = 'dashboard' | 'json' | 'base64' | 'imgopt' | 'hash' | 'unit' | 'case' | 'entity' | 'notepad' | 'password' | 'url-shortener' | 'datetime' | 'color' | 'jwt' | 'curl' | 'cron' | 'imagegen' | 'epoch' | 'jsonyaml' | 'regex' | 'markdown' | 'mockdata' | 'csvjson' | 'binhex' | 'filedetector' | 'mimelookup' | 'img2pdf' | 'qr' | 'xmljson' | 'minify' | 'jsonpath' | 'handlebars' | 'odata' | 'qrpdf' | 'restapi' | 'cropresize' | 'url' | 'settings';
 
 interface AppState {
   activeTool: ToolId;

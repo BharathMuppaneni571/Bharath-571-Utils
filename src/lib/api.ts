@@ -1,4 +1,6 @@
-const API_BASE_URL = 'https://bharath-571-utils.muppanenibharath571.workers.dev';
+const IS_EXTENSION = typeof window !== 'undefined' && (window.location.protocol === 'chrome-extension:' || (typeof chrome !== 'undefined' && !!chrome.runtime && !!chrome.runtime.id));
+const DEFAULT_PROD_URL = 'https://bharath-571-utils.muppanenibharath571.workers.dev';
+const API_BASE_URL = IS_EXTENSION ? DEFAULT_PROD_URL : (import.meta.env.DEV ? 'http://localhost:8787' : '');
 const AUTH_TOKEN_KEY = 'bharath_utils_auth_token';
 
 // Universal storage wrapper (Chrome Extension + Web)
