@@ -55,7 +55,32 @@ const CommandPalette: React.FC = () => {
       { id: 'jwt', title: 'JWT Sandbox', type: 'tool', icon: Zap },
       { id: 'curl', title: 'cURL Converter', type: 'tool', icon: Zap },
       { id: 'cron', title: 'Cron Generator', type: 'tool', icon: Zap },
+      { id: 'imagegen', title: 'AI Image Gen', type: 'tool', icon: Zap },
+      { id: 'epoch', title: 'Epoch Converter', type: 'tool', icon: Zap },
+      { id: 'jsonyaml', title: 'JSON ↔ YAML Converter', type: 'tool', icon: Zap },
+      { id: 'regex', title: 'RegEx Tester', type: 'tool', icon: Zap },
+      { id: 'markdown', title: 'Markdown Editor', type: 'tool', icon: Zap },
+      { id: 'mockdata', title: 'Mock Data Gen', type: 'tool', icon: Zap },
+      { id: 'csvjson', title: 'CSV ↔ JSON Converter', type: 'tool', icon: Zap },
+      { id: 'binhex', title: 'Binary ↔ Hex Converter', type: 'tool', icon: Zap },
+      { id: 'filedetector', title: 'File Detector', type: 'tool', icon: Zap },
+      { id: 'mimelookup', title: 'MIME Lookup', type: 'tool', icon: Zap },
+      { id: 'img2pdf', title: 'Images to PDF', type: 'tool', icon: Zap },
+      { id: 'qr', title: 'QR Generator', type: 'tool', icon: Zap },
+      { id: 'xmljson', title: 'XML ↔ JSON Converter', type: 'tool', icon: Zap },
+      { id: 'minify', title: 'Code Minifier', type: 'tool', icon: Zap },
+      { id: 'jsonpath', title: 'JSONPath Extractor', type: 'tool', icon: Zap },
+      { id: 'handlebars', title: 'Handlebars Binder', type: 'tool', icon: Zap },
+      { id: 'odata', title: 'OData Builder', type: 'tool', icon: Zap },
+      { id: 'qrpdf', title: 'QR Batch Export', type: 'tool', icon: Zap },
+      { id: 'restapi', title: 'REST Client', type: 'tool', icon: Zap },
+      { id: 'cropresize', title: 'Image Resize', type: 'tool', icon: Zap },
+      { id: 'url', title: 'URL Encoder', type: 'tool', icon: Zap },
+      { id: 'codediff', title: 'Code & Text Diff', type: 'tool', icon: Zap },
+      { id: 'id-generator', title: 'Secure ID Generator', type: 'tool', icon: Zap },
+      { id: 'client-inspector', title: 'Client Inspector', type: 'tool', icon: Zap }
     ].filter(a => a.title.toLowerCase().includes(q.toLowerCase()));
+
 
     try {
       const res = await authenticatedFetch(`/api/search?q=${encodeURIComponent(q)}&mode=insensitive`);

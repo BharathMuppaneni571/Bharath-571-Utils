@@ -24,10 +24,11 @@ export function useToolState<T>(
     return () => window.removeEventListener('nexus-restore-tool-state', handler);
   }, [toolId, restoreState]);
 
-  const recordAction = useCallback((_message?: string) => {
-    const currentValues = getValues();
+  const recordAction = useCallback((customValues?: any) => {
+    const currentValues = customValues !== undefined ? customValues : getValues();
     saveHistory(toolId, currentValues);
   }, [toolId, getValues, saveHistory]);
+
 
   return { recordAction };
 }

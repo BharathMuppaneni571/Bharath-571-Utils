@@ -27,8 +27,12 @@ import {
   Minimize2,
   Maximize,
   FileText,
-  QrCode
+  QrCode,
+  Columns,
+  Fingerprint,
+  Eye
 } from 'lucide-react';
+
 import { useAppStore } from '../store/useAppStore';
 
 interface Tool {
@@ -76,7 +80,11 @@ const tools: Tool[] = [
   { id: 'restapi', name: 'REST Client', icon: Globe, desc: 'Lightweight API testing.', color: 'from-fuchsia-500/20 to-purple-500/20' },
   { id: 'cropresize', name: 'Image Resize', icon: Maximize, desc: 'Scale images to pixels.', color: 'from-slate-500/20 to-blue-500/20' },
   { id: 'url', name: 'URL Encoder', icon: Link2, desc: 'Safe URL encode/decode.', color: 'from-blue-400/20 to-indigo-400/20' },
+  { id: 'codediff', name: 'Code & Text Diff', icon: Columns, desc: 'Compare text lines side-by-side or unified.', color: 'from-sky-500/20 to-indigo-500/20' },
+  { id: 'id-generator', name: 'Secure ID Generator', icon: Fingerprint, desc: 'Generate secure UUIDs & time-sortable ULIDs.', color: 'from-emerald-500/20 to-teal-500/20' },
+  { id: 'client-inspector', name: 'Client Inspector', icon: Eye, desc: 'Review browser information & display settings.', color: 'from-amber-500/20 to-orange-500/20' },
 ];
+
 
 const Dashboard: React.FC = () => {
   const { setActiveTool, pinnedTools, togglePin, loadPinnedTools } = useAppStore();

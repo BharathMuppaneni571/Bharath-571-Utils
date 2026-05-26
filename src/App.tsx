@@ -44,8 +44,12 @@ import {
   QrBatchExport,
   RestApiClient,
   CropResize,
-  UrlEncoder
+  UrlEncoder,
+  CodeDiff,
+  IdGenerator,
+  ClientInspector
 } from './components/tools';
+
 
 const ToolView: React.FC<{ id: string }> = ({ id }) => {
   const setActiveTool = useAppStore(state => state.setActiveTool);
@@ -87,6 +91,10 @@ const ToolView: React.FC<{ id: string }> = ({ id }) => {
     case 'restapi': return <RestApiClient />;
     case 'cropresize': return <CropResize />;
     case 'url': return <UrlEncoder />;
+    case 'codediff': return <CodeDiff />;
+    case 'id-generator': return <IdGenerator />;
+    case 'client-inspector': return <ClientInspector />;
+
     case 'settings': return <SettingsView />;
     default:
       return (
